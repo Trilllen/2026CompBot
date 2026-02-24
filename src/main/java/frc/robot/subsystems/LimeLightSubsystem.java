@@ -96,13 +96,9 @@ public class LimeLightSubsystem extends SubsystemBase {
         if (activeAllianceColorHex.equals("#FF0000")) { // Red Alliance
             m_activeHubTags = RedHubTags;
             m_activetrenchTags = RedTrenchTags;
-        } else if (activeAllianceColorHex.equals("#0000FF")) { // Blue Alliance
+        } else
             m_activeHubTags = BlueHubTags;
             m_activetrenchTags = BlueTrenchTags;
-        } else {
-            m_activeHubTags.clear();
-            m_activetrenchTags.clear();
-        }
     }
 
     public void driverMode() {

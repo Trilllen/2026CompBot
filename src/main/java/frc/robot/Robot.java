@@ -47,10 +47,10 @@ public class Robot extends TimedRobot {
 
   public void robotInit() {
     // Start camera
-    if (!Constants.kTestMode) {
-      CameraServer.startAutomaticCapture(0);
-      CameraServer.startAutomaticCapture(1);
-    }
+    // if (false) {
+    //   CameraServer.startAutomaticCapture(0);
+    //   CameraServer.startAutomaticCapture(1);
+    // }
   }
 
   /**

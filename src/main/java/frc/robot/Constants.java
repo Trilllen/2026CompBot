@@ -26,7 +26,7 @@ import edu.wpi.first.math.util.Units;
  */
 public final class Constants {
 
-  public static final boolean kTestMode = true;
+  public static final boolean kTestMode = false;
 
   public static final class DriveConstants {
     // Driving Parameters - Note that these are not the maximum capable speeds of
@@ -57,7 +57,7 @@ public final class Constants {
     public static final int kFrontRightDrivingCanId = 15;
     public static final int kRearRightDrivingCanId = 17;
 
-    public static final int kFrontLeftTurningCanId = 10;
+    public static final int kFrontLeftTurningCanId = 10;//10;
     public static final int kRearLeftTurningCanId = 12;
     public static final int kFrontRightTurningCanId = 14;
     public static final int kRearRightTurningCanId = 16;

@@ -52,7 +52,19 @@ public class DriveSubsystem extends SubsystemBase {
   private Rotation2d headingOffset = new Rotation2d();
   private SwerveDrivePoseEstimator m_poseEstimator;
 
-  // Odometry class for tracking robot pose
+
+  /** Creates a new DriveSubsystem. */
+  public DriveSubsystem(Pigeon2 pigeon) {
+    
+    // Usage reporting for MAXSwerve template
+    HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
+
+    m_pigeon = pigeon;
+    System.out.println("The drive has the pigeon" + m_pigeon);
+    m_pigeon.clearStickyFaults();
+    m_pigeon.getConfigurator().apply(new Pigeon2Configuration());
+
+      // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
       DriveConstants.kDriveKinematics,
       getGyroRotation2d(),
@@ -63,26 +75,11 @@ public class DriveSubsystem extends SubsystemBase {
           m_rearLeft.getPosition(),
           m_rearRight.getPosition()
       });
-
-  /** Creates a new DriveSubsystem. */
-  public DriveSubsystem(Pigeon2 pigeon) {
-    // Usage reporting for MAXSwerve template
-    HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
-
-    m_pigeon = pigeon;
-    System.out.println("The drive has the pigeon" + m_pigeon);
-    m_pigeon.clearStickyFaults();
-    m_pigeon.getConfigurator().apply(new Pigeon2Configuration());
-
-    // Odometry class for tracking robot pose
-    m_poseEstimator = new SwerveDrivePoseEstimator(
+      m_poseEstimator = new SwerveDrivePoseEstimator(
       DriveConstants.kDriveKinematics,
-      getGyroRotation2d(),                          // Current heading
-      getSwervePositions(),                         // Swerve module positions array
-      new Pose2d()                                  // Initial starting pose
-      // Optionally, you can provide standard deviation arrays for state and vision
-      // measurement if you want to tune the Kalman filter more precisely.
-    );
+      getGyroRotation2d(),
+      getSwervePositions(),
+      new Pose2d());
   }
   
   public SwerveDrivePoseEstimator getPoseEstimator() {

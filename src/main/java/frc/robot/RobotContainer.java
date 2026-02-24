@@ -61,7 +61,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 public class RobotContainer {
 
   public CANBus m_CanBus = new CANBus();
-  public Pigeon2 m_Pigeon = new Pigeon2(Constants.SensorConstants.kPigeonCanId, m_CanBus);
+  public Pigeon2 m_Pigeon;
   private States.State m_botState = States.State.Initial;
 
   // The robot's subsystems and commands are defined here...
@@ -86,6 +86,8 @@ public class RobotContainer {
    */
   public RobotContainer() {
     // Initialize subsystems
+    m_Pigeon = new Pigeon2(Constants.SensorConstants.kPigeonCanId, m_CanBus);
+    System.out.println("m_Pigeon = " + m_Pigeon.getDeviceID());
     m_botState = States.State.Initial;
     if (!Constants.kTestMode) {
       m_robotDrive = new DriveSubsystem(m_Pigeon);
