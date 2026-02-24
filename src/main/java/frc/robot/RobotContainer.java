@@ -30,6 +30,7 @@ import frc.robot.commands.LauncherCommands.Launch;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IndexerSubsystem;
+import frc.robot.subsystems.IntakeArmSubsystem;
 import frc.robot.subsystems.UpperIndexerSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
@@ -70,6 +71,7 @@ public class RobotContainer {
   // parameter.
   private final DriveSubsystem m_robotDrive;
   private final IntakeSubsystem m_robotIntake;
+  private final IntakeArmSubsystem m_robotIntakeArm;
   private final TurretSubsystem m_robotTurret;
   private final ClimberSubsystem m_robotClimber;
   private final LimeLightSubsystem m_Limelight;
@@ -92,6 +94,7 @@ public class RobotContainer {
     if (!Constants.kTestMode) {
       m_robotDrive = new DriveSubsystem(m_Pigeon);
       m_robotIntake = new IntakeSubsystem();
+      m_robotIntakeArm = new IntakeArmSubsystem();
       m_robotTurret = new TurretSubsystem();
       m_robotClimber = new ClimberSubsystem();
       m_launcherSubsystem = new LauncherSubsystem(m_gunnerController, m_botState);
@@ -102,6 +105,7 @@ public class RobotContainer {
     } else {
       m_robotDrive = null;
       m_robotIntake = null;
+      m_robotIntakeArm = null;
       m_robotTurret = null;
       m_robotClimber = null;
       m_launcherSubsystem = null;
@@ -215,6 +219,10 @@ public class RobotContainer {
             () -> m_robotIndexer.startIndexerMotor(),
             () -> m_robotIndexer.stopIndexerMotor(),
             m_robotIndexer));
+
+    new JoystickButton(m_gunnerController, XboxController.Button.kA.value)
+        .onTrue(new InstantCommand(() -> m_robotIntakeArm.toggleStowDeploy(),
+            m_robotIntakeArm));
 
     // While the left Dpad is held, the indexer runs in reverse, and when released
     // it goes to positive agin

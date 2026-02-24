@@ -159,6 +159,18 @@ public final class Constants {
     public static final double kIntakeDelay = 1.5;
   }
 
+  public static final class IntakeArmConstants {
+    public static final int kIntakeArmCanId = 29;
+    public static final double kIntakeArmMotorSpeed = 0.5;
+    public static final double kIntakeArmReverseMotorSpeed = 0.5;
+    public static final double kPitchGearboxRatio = 12.0;  // 12:1 gear box  (drive24 code used 125)
+    public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; //(drive24 code used 360 for the nominator)
+    public static final double kPitchP = 0.01;
+    public static final double kPitchI = 0.0;
+    public static final double kPitchD = 0.0;
+    //public static final double kPitchFF = 0.0;
+  }
+
   public static final class LedConstants {
     public static final int kPwmPort = 9;
     public static final int kTotalLeds = 164; // 60 LEDs per Meter for 2.74 meters (27in x 4)
