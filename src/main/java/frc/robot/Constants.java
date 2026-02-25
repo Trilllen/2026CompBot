@@ -135,8 +135,8 @@ public final class Constants {
 
   public static final class ClimberConstants {
     public static final int kClimberMotorCanId = 25;
-    public static final double kClimberMotorSpeed = 0.5;
-    public static final double kClimberReverseMotorSpeed = 0.1;
+    public static final double kClimberMotorSpeed = -0.8; // motor is inverted, so need to send negative value
+    public static final double kClimberReverseMotorSpeed = -0.8; // motor is inverted, so need to send negative value
   }
 
   public static final class IndexerConstants {
@@ -161,8 +161,8 @@ public final class Constants {
 
   public static final class IntakeArmConstants {
     public static final int kIntakeArmCanId = 29;
-    public static final double kIntakeArmMotorSpeed = 0.5;
-    public static final double kIntakeArmReverseMotorSpeed = 0.5;
+    public static final double kIntakeArmMotorSpeed = 0.8;
+    public static final double kIntakeArmReverseMotorSpeed = 0.8;
     public static final double kPitchGearboxRatio = 12.0;  // 12:1 gear box  (drive24 code used 125)
     public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; //(drive24 code used 360 for the nominator)
     public static final double kPitchP = 0.01;
@@ -188,6 +188,8 @@ public final class Constants {
     public static final double kP = 0.1;
     public static final double kI = 0;
     public static final double kD = 0;
+    public static final double kMinInput = -90;
+    public static final double kMaxInput = 90;
     public static final double kTargetToleranceDegrees = 5;
     public static final double kLowClamp = -0.5;
     public static final double kHighClamp = 0.5;

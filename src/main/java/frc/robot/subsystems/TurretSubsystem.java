@@ -5,33 +5,31 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.RelativeEncoder;
+//import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Translation2d;
+//import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.TurretConstants; // Assuming you have a Constants file for PID and motor IDs
 import frc.robot.utils.LimelightHelpers; // Import the LimelightHelpers class
-import frc.robot.subsystems.LimeLightSubsystem;
+//import frc.robot.subsystems.LimeLightSubsystem;
 
 public class TurretSubsystem extends SubsystemBase {
     // Establish motor controller object for the turret and encoder
     private final SparkMax m_turretMotor = new SparkMax(TurretConstants.kTurretCanId, SparkMax.MotorType.kBrushless);
-    private final RelativeEncoder m_turretMotorEncoder = m_turretMotor.getEncoder();
+    //private final RelativeEncoder m_turretMotorEncoder = m_turretMotor.getEncoder();
 
     // A PID controller for the turret's rotational movement
-    private final PIDController m_turretPID = new PIDController(
-        TurretConstants.kP, TurretConstants.kI, TurretConstants.kD
-    );
+    private final PIDController m_turretPID = new PIDController(TurretConstants.kP, TurretConstants.kI, TurretConstants.kD);
 
     public TurretSubsystem() {
-        // Configure PID controller for continuous input (turret can spin 360 degrees)
-        m_turretPID.enableContinuousInput(-180.0, 180.0); // Adjust limits based on your turret's design and wiring
-        // output is clamped in the turnTurret method, so we don't set output range here
-        //m_turretPID.setOutputRange(-0.5, 0.5);
+        // Configure PID controller for continuous input (turret will be limited to 180 degrees)
+        m_turretPID.enableContinuousInput(TurretConstants.kMinInput, TurretConstants.kMaxInput); // Adjust limits based on your turret's design and wiring
     }
 
+    // Used by both auto aim and Limelight aim
+    // output is clamped in the turnTurret method, so we don't set output range here
     public void turnTurret(double speed) {
         double clampSpeed = MathUtil.clamp(m_turretPID.calculate(0.0, speed), TurretConstants.kLowClamp, TurretConstants.kHighClamp);
         m_turretMotor.set(clampSpeed);

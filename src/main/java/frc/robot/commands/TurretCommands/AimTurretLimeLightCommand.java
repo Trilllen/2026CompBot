@@ -4,10 +4,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.TurretConstants;
 import frc.robot.subsystems.TurretSubsystem;
 
-public class AimTurretCommand extends Command {
+public class AimTurretLimeLightCommand extends Command {
     private final TurretSubsystem m_turret;
 
-    public AimTurretCommand(TurretSubsystem subsystem) {
+    public AimTurretLimeLightCommand(TurretSubsystem subsystem) {
         m_turret = subsystem;
         addRequirements(m_turret);
     }
