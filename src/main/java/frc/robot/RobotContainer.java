@@ -70,7 +70,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Initialize subsystems
     m_Pigeon = new Pigeon2(Constants.SensorConstants.kPigeonCanId, m_CanBus);
-    System.out.println("m_Pigeon = " + m_Pigeon.getDeviceID());
+    //System.out.println("m_Pigeon = " + m_Pigeon.getDeviceID());
     m_botState = States.State.Initial;
     if (!Constants.kTestMode) {
       m_robotDrive = new DriveSubsystem(m_Pigeon);
@@ -118,7 +118,6 @@ public class RobotContainer {
     /*
      * DRIVER CONTROLS
      */
-    if (!Constants.kTestMode) {
       // Right bumper -> lock wheels in X pattern
       m_driverController.rightBumper()
           .whileTrue(new RunCommand(
@@ -126,6 +125,9 @@ public class RobotContainer {
               m_robotDrive));
 
       // Start button -> zero heading
+      //This makes Mr. Berry nervous. If we hit this unintentionally were going to reset orientation to a random direction which is difficult to recover. It's ok in testing code becauase sometimes it's convienct
+      //I think this functionality should be disabled during comp
+  if (!Constants.kTestMode) {
       m_driverController.start()
           .onTrue(new InstantCommand(
               () -> m_robotDrive.zeroHeading(),
@@ -149,13 +151,13 @@ public class RobotContainer {
         .onFalse(new InstantCommand(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem)
             .andThen(() -> m_robotIndexer.stopIndexerMotor(), m_robotIndexer));
 
-    // D-Pad Up -> extend climber (with 5-second timeout)
+    // D-Pad Up -> extend climber (while held)
     m_gunnerController.pov(dPadConstants.kDPadUp)
-        .onTrue(
-            new RunCommand(() -> m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
-                m_robotClimber)
-                .withTimeout(5)
-                .andThen(() -> m_robotClimber.stopClimber()));
+        .whileTrue(
+            new StartEndCommand(
+                () -> m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
+                () -> m_robotClimber.stopClimber(),
+                m_robotClimber);
 
     // D-Pad Down -> retract climber (while held)
     m_gunnerController.pov(dPadConstants.kDPadDown)
@@ -203,7 +205,7 @@ public class RobotContainer {
     m_gunnerController.leftBumper()
         .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(), m_robotIntake));
 
-    //
+    // I dont' think this is correct
     m_robotTurret.setDefaultCommand(new AimTurretManualCommand(m_robotTurret, () -> m_gunnerController.getLeftX()));
   }
 
