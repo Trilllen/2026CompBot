@@ -1,8 +1,8 @@
 package frc.robot.commands.TurretCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants.TurretConstants;
 import frc.robot.subsystems.TurretSubsystem;
+import java.util.function.DoubleSupplier;
 
 
 // // TO DO:
@@ -13,27 +13,20 @@ import frc.robot.subsystems.TurretSubsystem;
 //         // Apply the motor command to the turret motor
 //          m_turret.turnTurret(m_turret.getTx()); // This is a placeholder, replace with actual PID output based on target angle
 
-
-public class AutoAimTurretCommand extends Command {
+public class AimTurretManualCommand extends Command {
     private final TurretSubsystem m_turret;
+    private final DoubleSupplier m_speedSupplier;
 
-    public AutoAimTurretCommand(TurretSubsystem subsystem) {
+    public AimTurretManualCommand(TurretSubsystem subsystem, DoubleSupplier speedSupplier) {
         m_turret = subsystem;
+        m_speedSupplier = speedSupplier;
         addRequirements(m_turret);
     }
 
     @Override
     public void execute() {
-        // Get the calculated motor speed from the subsystem logic
-        double speed = m_turret.calculateTurretCommand();
         // Apply the speed to the motor
-        m_turret.turnTurret(speed);
-    }
-
-    @Override
-    public boolean isFinished() {
-        // Command finishes when the target is centered within a small tolerance
-        return m_turret.hasTarget() && Math.abs(m_turret.getTx()) < TurretConstants.kTargetToleranceDegrees;
+        m_turret.turnTurret(m_speedSupplier.getAsDouble());
     }
 
     @Override

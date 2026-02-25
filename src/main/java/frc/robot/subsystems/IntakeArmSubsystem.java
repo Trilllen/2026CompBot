@@ -20,7 +20,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   // PID Controller (tune these constants for your robot)
   // TO DO: replace PID values with constants
-  private final PIDController pid = new PIDController(0.05, 0.0, 0.001);
+  private final PIDController pid = new PIDController(IntakeArmConstants.kPitchP, IntakeArmConstants.kPitchI, IntakeArmConstants.kPitchD);
   private static final double kPositionToleranceRot = 0.05; // ±1/20 rotation tolerance
 
   // Conversion factor: encoder rotations → degrees
@@ -32,10 +32,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   // We can change these to what we want after testing
   private static final double STOW_ROT = 0.0;
-  private static final double DEPLOY_ROT = 5.0;
+  private static final double DEPLOY_ROT = 10.0;
 
   // Increase this value to allow the motor to deliver a greater output
-  private static final double MAX_OUTPUT = 0.4;
+  private static final double MAX_OUTPUT = 0.8;
+  
   // Target rotations
   // TO DO: setup as constant
   private double m_targetRotation;
