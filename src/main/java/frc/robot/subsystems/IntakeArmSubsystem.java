@@ -32,7 +32,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   // We can change these to what we want after testing
   private static final double STOW_ROT = 0.0;
-  private static final double DEPLOY_ROT = 5.0;
+  private static final double DEPLOY_ROT = 10.0;
 
   // Increase this value to allow the motor to deliver a greater output
   private static final double MAX_OUTPUT = 0.4;
@@ -71,7 +71,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   // TO DO: make private if not used outside this file
   public void stow() {
-    m_isDeployed = false;
+    //m_isDeployed = false;
     setTargetRotation(STOW_ROT);
   }
 

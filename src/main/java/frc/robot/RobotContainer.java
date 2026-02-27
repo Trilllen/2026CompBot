@@ -192,7 +192,7 @@ public class RobotContainer {
     extendClimberTrigger.onTrue(
         new RunCommand(() -> m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
             m_robotClimber)
-            .withTimeout(5)
+            .withTimeout(2)
             .andThen(() -> m_robotClimber.stopClimber()));
     // Retract Climber
     // TO DO (later): Add fully reatracted function isFulylRetracted to check if
@@ -246,6 +246,9 @@ public class RobotContainer {
     intakeTrigger.onFalse(new InstantCommand(() -> m_robotIntake.stopIntakeRollers(), m_robotIntake));
     new JoystickButton(m_gunnerController, XboxController.Button.kLeftBumper.value)
         .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(), m_robotIntake));
+
+    Trigger turretTurnLeft = new Trigger(this::manualTurretLeftRequested);
+    turretTurnLeft.whileTrue(new InstantCommand(() -> m_robotTurret.turnTurret(.1), m_robotTurret));
 
     // TODO: Driver controls
     // new JoystickButton(m_driverController,
@@ -326,6 +329,12 @@ public class RobotContainer {
   // Check if DPad Right is pressed on the gunner controller
   public boolean reverseLauncherRequested() {
     return m_gunnerController.getPOV() == dPadConstants.kDPadRight;
+  }
+  public boolean manualTurretLeftRequested() {
+    return m_gunnerController.getXButton();
+  }
+  public boolean manualTurretRightRequested() {
+    return m_gunnerController.getBButton();
   }
 
   /**
