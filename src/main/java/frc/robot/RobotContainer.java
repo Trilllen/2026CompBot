@@ -82,7 +82,6 @@ public class RobotContainer {
       m_UpperIndexerSubsystem = new UpperIndexerSubsystem();
       m_Limelight = new LimeLightSubsystem(m_robotDrive);
       configureButtonBindings();
-    }
 
     // Configure default commands
     if (m_robotDrive != null) {
