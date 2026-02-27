@@ -203,6 +203,13 @@ public class RobotContainer {
     m_gunnerController.leftBumper()
         .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(), m_robotIntake));
 
+    Trigger turretTurnLeft = new Trigger(this::manualTurretLeftRequested);
+    turretTurnLeft.whileTrue(new InstantCommand(() -> m_robotTurret.turnTurret(.1), m_robotTurret));
+
+    // TODO: Driver controls
+    // new JoystickButton(m_driverController,
+    // XboxController.Button.kLeftTrigger.value).whileTrue(new RunCommand(() ->
+    // m_robotDrive.brakeSlowDown(), m_robotDrive));
     //
     m_robotTurret.setDefaultCommand(new AimTurretManualCommand(m_robotTurret, () -> m_gunnerController.getLeftX()));
   }
@@ -249,6 +256,44 @@ public class RobotContainer {
    * RightTrigger ->
    * 
    */
+
+  // Check if right trigger is pressed on the gunner controller
+  // Called by launch Trigger in configureButtonBindings()
+  public boolean launchRequested() {
+    return m_gunnerController.getRightTriggerAxis() > OIConstants.kRightTriggerThreshhold;
+  }
+
+  // Check if left trigger is pressed on the gunner controller
+  // Called by intake Trigger in configureButtonBindings()
+  public boolean intakeRequested() {
+    return m_gunnerController.getLeftTriggerAxis() > OIConstants.kLeftTriggerThreshhold;
+  }
+
+  // Check if DPad Up is pressed on the gunner controller
+  public boolean extendClimberRequested() {
+    return m_gunnerController.getPOV() == dPadConstants.kDPadUp;
+  }
+
+  // Check if DPad Down is pressed on the gunner controller
+  public boolean retractClimberRequested() {
+    return m_gunnerController.getPOV() == dPadConstants.kDPadDown;
+  }
+
+  // Check if DPad Left is pressed on the gunner controller
+  public boolean reverseIndexerRequested() {
+    return m_gunnerController.getPOV() == dPadConstants.kDPadLeft;
+  }
+
+  // Check if DPad Right is pressed on the gunner controller
+  public boolean reverseLauncherRequested() {
+    return m_gunnerController.getPOV() == dPadConstants.kDPadRight;
+  }
+  public boolean manualTurretLeftRequested() {
+    return m_gunnerController.getXButton();
+  }
+  public boolean manualTurretRightRequested() {
+    return m_gunnerController.getBButton();
+  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
