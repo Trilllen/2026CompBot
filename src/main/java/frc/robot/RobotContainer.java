@@ -70,9 +70,8 @@ public class RobotContainer {
   public RobotContainer() {
     // Initialize subsystems
     m_Pigeon = new Pigeon2(Constants.SensorConstants.kPigeonCanId, m_CanBus);
-    System.out.println("m_Pigeon = " + m_Pigeon.getDeviceID());
     m_botState = States.State.Initial;
-    if (!Constants.kTestMode) {
+    
       m_robotDrive = new DriveSubsystem(m_Pigeon);
       m_robotIntake = new IntakeSubsystem();
       m_robotIntakeArm = new IntakeArmSubsystem();
@@ -83,16 +82,6 @@ public class RobotContainer {
       m_UpperIndexerSubsystem = new UpperIndexerSubsystem();
       m_Limelight = new LimeLightSubsystem(m_robotDrive);
       configureButtonBindings();
-    } else {
-      m_robotDrive = null;
-      m_robotIntake = null;
-      m_robotIntakeArm = null;
-      m_robotTurret = null;
-      m_robotClimber = null;
-      m_launcherSubsystem = null;
-      m_robotIndexer = null;
-      m_UpperIndexerSubsystem = null;
-      m_Limelight = new LimeLightSubsystem(m_robotDrive);
     }
 
     // Configure default commands
@@ -118,13 +107,14 @@ public class RobotContainer {
     /*
      * DRIVER CONTROLS
      */
-    if (!Constants.kTestMode) {
+
       // Right bumper -> lock wheels in X pattern
       m_driverController.rightBumper()
           .whileTrue(new RunCommand(
               () -> m_robotDrive.setX(),
               m_robotDrive));
-
+    
+      if (Constants.kTestMode) {
       // Start button -> zero heading
       m_driverController.start()
           .onTrue(new InstantCommand(
