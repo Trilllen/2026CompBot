@@ -165,7 +165,7 @@ public final class Constants {
     public static final double kIntakeArmReverseMotorSpeed = 1.0;
     public static final double kPitchGearboxRatio = 12.0;  // 12:1 gear box  (drive24 code used 125)
     public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; //(drive24 code used 360 for the nominator)
-    public static final double kPitchP = 0.01;
+    public static final double kPitchP = 0.8;
     public static final double kPitchI = 0.0;
     public static final double kPitchD = 0.0;
     //public static final double kPitchFF = 0.0;
