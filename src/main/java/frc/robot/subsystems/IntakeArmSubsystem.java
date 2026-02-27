@@ -43,6 +43,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
   private double m_currentRotation;
 
   private boolean m_isDeployed;
+  private boolean m_manualOverride = false;
+  private double output;
 
   /** Creates a new IntakeArmSubsystem. */
   public IntakeArmSubsystem() {
@@ -90,14 +92,33 @@ public class IntakeArmSubsystem extends SubsystemBase {
     }
   }
 
+  //May need to flip this signs based off of testing
+  public void raiseArm(){
+    output = MAX_OUTPUT;
+    m_manualOverride = true;
+  }
+  
+  public void lowerArm(){
+    output = -MAX_OUTPUT;
+    m_manualOverride = true;
+  }
+
+  public void stopArm(){
+    intakeArmMotor.set(0);
+    m_manualOverride = false;
+    m_targetRotation = intakeArmEncoder.getPosition();
+  }
+  
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     // Get motor rotations
     m_currentRotation = intakeArmEncoder.getPosition();
 
-    double output = pid.calculate(m_currentRotation, m_targetRotation);
-
+    if (!m_manualOverride) {
+    output = pid.calculate(m_currentRotation, m_targetRotation);
+    }
+      
     // Clamp to protect motor
     if (output > MAX_OUTPUT) {
       output = MAX_OUTPUT;
