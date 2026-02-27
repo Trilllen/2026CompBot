@@ -129,8 +129,8 @@ public final class Constants {
     public static final int kLauncherMotorMaster = 20;
     public static final int kLauncherMotorFollower = 21;
 
-    public static final double kLauncherMotorSpeed = 0.1;
-    public static final double kLauncherReverseMotorSpeed = 0.05;
+    public static final double kLauncherMotorSpeed = 1;
+    public static final double kLauncherReverseMotorSpeed = 1;
   }
 
   public static final class ClimberConstants {
