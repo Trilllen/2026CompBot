@@ -20,7 +20,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   // PID Controller (tune these constants for your robot)
   // TO DO: replace PID values with constants
-  private final PIDController pid = new PIDController(0.05, 0.0, 0.001);
+  private final PIDController pid = new PIDController(IntakeArmConstants.kPitchP, IntakeArmConstants.kPitchI, IntakeArmConstants.kPitchD);
   private static final double kPositionToleranceRot = 0.05; // ±1/20 rotation tolerance
 
   // Conversion factor: encoder rotations → degrees
@@ -35,13 +35,16 @@ public class IntakeArmSubsystem extends SubsystemBase {
   private static final double DEPLOY_ROT = 10.0;
 
   // Increase this value to allow the motor to deliver a greater output
-  private static final double MAX_OUTPUT = 0.4;
+  private static final double MAX_OUTPUT = 0.8;
+  
   // Target rotations
   // TO DO: setup as constant
   private double m_targetRotation;
   private double m_currentRotation;
 
   private boolean m_isDeployed;
+  private boolean m_manualOverride = false;
+  private double output;
 
   /** Creates a new IntakeArmSubsystem. */
   public IntakeArmSubsystem() {
@@ -89,14 +92,33 @@ public class IntakeArmSubsystem extends SubsystemBase {
     }
   }
 
+  //May need to flip this signs based off of testing
+  public void raiseArm(){
+    output = MAX_OUTPUT;
+    m_manualOverride = true;
+  }
+  
+  public void lowerArm(){
+    output = -MAX_OUTPUT;
+    m_manualOverride = true;
+  }
+
+  public void stopArm(){
+    intakeArmMotor.set(0);
+    m_manualOverride = false;
+    m_targetRotation = intakeArmEncoder.getPosition();
+  }
+  
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     // Get motor rotations
     m_currentRotation = intakeArmEncoder.getPosition();
 
-    double output = pid.calculate(m_currentRotation, m_targetRotation);
-
+    if (!m_manualOverride) {
+    output = pid.calculate(m_currentRotation, m_targetRotation);
+    }
+      
     // Clamp to protect motor
     if (output > MAX_OUTPUT) {
       output = MAX_OUTPUT;

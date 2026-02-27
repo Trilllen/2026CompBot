@@ -129,8 +129,8 @@ public final class Constants {
     public static final int kLauncherMotorMaster = 20;
     public static final int kLauncherMotorFollower = 21;
 
-    public static final double kLauncherMotorSpeed = 0.1;
-    public static final double kLauncherReverseMotorSpeed = 0.05;
+    public static final double kLauncherMotorSpeed = 1;
+    public static final double kLauncherReverseMotorSpeed = 1;
   }
 
   public static final class ClimberConstants {
@@ -141,9 +141,9 @@ public final class Constants {
 
   public static final class IndexerConstants {
     public static final int kIndexerCanId = 26;
-    public static final double kIndexerMotorSpeed = 0.5;
+    public static final double kIndexerMotorSpeed = 1.0;
     public static final double kIndexerDelay = 1.5;
-    public static final double kIndexerReverseMotorSpeed = 0.1;
+    public static final double kIndexerReverseMotorSpeed = 1.0;
   }
 
   public static final class UpperIndexerConstants {
@@ -161,8 +161,8 @@ public final class Constants {
 
   public static final class IntakeArmConstants {
     public static final int kIntakeArmCanId = 29;
-    public static final double kIntakeArmMotorSpeed = 0.5;
-    public static final double kIntakeArmReverseMotorSpeed = 0.5;
+    public static final double kIntakeArmMotorSpeed = 1.0;
+    public static final double kIntakeArmReverseMotorSpeed = 1.0;
     public static final double kPitchGearboxRatio = 12.0;  // 12:1 gear box  (drive24 code used 125)
     public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; //(drive24 code used 360 for the nominator)
     public static final double kPitchP = 0.01;
@@ -188,6 +188,8 @@ public final class Constants {
     public static final double kP = 0.1;
     public static final double kI = 0;
     public static final double kD = 0;
+    public static final double kMinInput = -90;
+    public static final double kMaxInput = 90;
     public static final double kTargetToleranceDegrees = 5;
     public static final double kLowClamp = -0.5;
     public static final double kHighClamp = 0.5;
