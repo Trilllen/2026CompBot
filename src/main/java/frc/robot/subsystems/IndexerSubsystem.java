@@ -4,21 +4,21 @@
 
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IndexerConstants;;
 
 public class IndexerSubsystem extends SubsystemBase {
-  private SparkMax m_indexerMotor;
+  private SparkFlex m_indexerMotor;
   private boolean m_indexerOn = false;
   private boolean m_buttonState = false;
 
   /** Creates a new IndexerSubsystem. */
   public IndexerSubsystem() {
     System.out.println("new Indexer");
-    m_indexerMotor = new SparkMax(IndexerConstants.kIndexerCanId, MotorType.kBrushless);
+    m_indexerMotor = new SparkFlex(IndexerConstants.kIndexerCanId, MotorType.kBrushless);
   }
 
   public void buttonPress() {
