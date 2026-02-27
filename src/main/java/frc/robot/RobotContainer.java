@@ -142,13 +142,20 @@ public class RobotContainer {
         .onFalse(new InstantCommand(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem)
             .andThen(() -> m_robotIndexer.stopIndexerMotor(), m_robotIndexer));
 
-    // D-Pad Up -> extend climber (with 5-second timeout)
+    // D-Pad Up -> extend climber
     m_gunnerController.pov(dPadConstants.kDPadUp)
-        .onTrue(
-            new RunCommand(() -> m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
-                m_robotClimber)
-                .withTimeout(5)
-                .andThen(() -> m_robotClimber.stopClimber()));
+        .whileTrue(
+            new StartEndCommand(
+                () -> m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
+                () -> m_robotClimber.stopClimber(),
+                m_robotClimber));
+    // // D-Pad Up -> extend climber (with 5-second timeout)
+    // m_gunnerController.pov(dPadConstants.kDPadUp)
+    //     .onTrue(
+    //         new RunCommand(() -> m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
+    //             m_robotClimber)
+    //             .withTimeout(5)
+    //             .andThen(() -> m_robotClimber.stopClimber()));
 
     // D-Pad Down -> retract climber (while held)
     m_gunnerController.pov(dPadConstants.kDPadDown)
