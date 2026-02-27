@@ -192,7 +192,6 @@ public class RobotContainer {
     extendClimberTrigger.onTrue(
         new RunCommand(() -> m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
             m_robotClimber)
-            .withTimeout(2)
             .andThen(() -> m_robotClimber.stopClimber()));
     // Retract Climber
     // TO DO (later): Add fully reatracted function isFulylRetracted to check if
