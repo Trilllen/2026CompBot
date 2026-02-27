@@ -35,7 +35,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
   private static final double DEPLOY_ROT = 10.0;
 
   // Increase this value to allow the motor to deliver a greater output
-  private static final double MAX_OUTPUT = 0.8;
+  private static final double MAX_OUTPUT = 0.9;
   
   // Target rotations
   // TO DO: setup as constant
@@ -113,7 +113,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     // Get motor rotations
-    m_currentRotation = intakeArmEncoder.getPosition();
+    m_currentRotation = intakeArmEncoder.getPosition() * IntakeArmConstants.kPitchEncoderPositionConversionFactor;
 
     if (!m_manualOverride) {
     output = pid.calculate(m_currentRotation, m_targetRotation);

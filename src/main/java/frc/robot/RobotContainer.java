@@ -99,7 +99,8 @@ public class RobotContainer {
           m_robotDrive.drive(xSpeed, ySpeed, rot, true);
         },
         m_robotDrive
-      )
+      ));
+    }
   }
 
   /**
