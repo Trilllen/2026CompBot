@@ -4,7 +4,7 @@
 
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -12,12 +12,12 @@ import frc.robot.Constants.UpperIndexerConstants;;
 
 public class UpperIndexerSubsystem extends SubsystemBase {
   // TODO: Change to FLEX
-  private SparkMax m_UpperindexerMotor;
+  private SparkFlex m_UpperindexerMotor;
 
   /** UpperIndexerSubsystem. */
   public UpperIndexerSubsystem() {
     System.out.println("Starting Upper Indexer");
-    m_UpperindexerMotor = new SparkMax(UpperIndexerConstants.kUpperIndexerCanId, MotorType.kBrushless);
+    m_UpperindexerMotor = new SparkFlex(UpperIndexerConstants.kUpperIndexerCanId, MotorType.kBrushless);
   }
 
   public void startUpperIndexerMotor() {
