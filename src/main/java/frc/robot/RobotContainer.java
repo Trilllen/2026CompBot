@@ -147,14 +147,21 @@ public class RobotContainer {
                 .onFalse(new InstantCommand(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem)
                         .andThen(() -> m_robotIndexer.stopIndexerMotor(), m_robotIndexer));
 
-        // D-Pad Up -> extend climber (with 5-second timeout)
+        // D-Pad Up -> extend climber
         m_gunnerController.pov(dPadConstants.kDPadUp)
-                .onTrue(
-                        new RunCommand(
+                .whileTrue(
+                        new StartEndCommand(
                                 () -> m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
-                                m_robotClimber)
-                                .withTimeout(5)
-                                .andThen(() -> m_robotClimber.stopClimber()));
+                                () -> m_robotClimber.stopClimber(),
+                                m_robotClimber));
+        // // D-Pad Up -> extend climber (with 5-second timeout)
+        // m_gunnerController.pov(dPadConstants.kDPadUp)
+        // .onTrue(
+        // new RunCommand(() ->
+        // m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
+        // m_robotClimber)
+        // .withTimeout(5)
+        // .andThen(() -> m_robotClimber.stopClimber()));
 
         // D-Pad Down -> retract climber (while held)
         m_gunnerController.pov(dPadConstants.kDPadDown)
@@ -176,6 +183,20 @@ public class RobotContainer {
         m_gunnerController.a()
                 .onTrue(new InstantCommand(() -> m_robotIntakeArm.toggleStowDeploy(),
                         m_robotIntakeArm));
+
+        // MANUAL arm
+        m_gunnerController.x()
+                .whileTrue(
+                        new StartEndCommand(
+                                () -> m_robotIntakeArm.raiseArm(),
+                                () -> m_robotIntakeArm.stopArm(),
+                                m_robotIntakeArm));
+        m_gunnerController.b()
+                .whileTrue(
+                        new StartEndCommand(
+                                () -> m_robotIntakeArm.lowerArm(),
+                                () -> m_robotIntakeArm.stopArm(),
+                                m_robotIntakeArm));
 
         // D-Pad Left -> reverse indexer (while held)
         m_gunnerController.pov(dPadConstants.kDPadLeft)
