@@ -135,8 +135,8 @@ public final class Constants {
 
   public static final class ClimberConstants {
     public static final int kClimberMotorCanId = 25;
-    public static final double kClimberMotorSpeed = -0.9; // motor is inverted, so need to send negative value
-    public static final double kClimberReverseMotorSpeed = -0.9; // motor is inverted, so need to send negative value
+    public static final double kClimberMotorSpeed = 1;
+    public static final double kClimberReverseMotorSpeed = 1;
   }
 
   public static final class IndexerConstants {

@@ -33,6 +33,7 @@ public class TurretSubsystem extends SubsystemBase {
     public void turnTurret(double speed) {
         double clampSpeed = MathUtil.clamp(m_turretPID.calculate(0.0, speed), TurretConstants.kLowClamp, TurretConstants.kHighClamp);
         m_turretMotor.set(clampSpeed);
+        System.out.println("Turning Turret at" + clampSpeed);
     }
 
     public double getTx() {

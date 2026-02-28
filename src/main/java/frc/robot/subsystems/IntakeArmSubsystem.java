@@ -77,7 +77,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   // TO DO: make private if not used outside this file
   public void stow() {
-    m_isDeployed = false;
+    //m_isDeployed = false;
     setTargetRotation(STOW_ROT);
   }
 
