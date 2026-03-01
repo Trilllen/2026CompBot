@@ -13,6 +13,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import frc.robot.Constants.LauncherConstants;
 import frc.robot.Constants.States;
+import frc.robot.Constants.States.State;
 
 
 
@@ -22,10 +23,11 @@ public class LauncherSubsystem extends SubsystemBase {
   // Declare the TalonFX motor controller object with a specific CAN ID
   private final TalonFX m_krakenMotorMaster = new TalonFX(LauncherConstants.kLauncherMotorMaster); // Replace 10 with your motor's CAN ID
   private final TalonFX m_krakenMotorFollower = new  TalonFX (LauncherConstants.kLauncherMotorFollower);
+  public States m_currentState;
 
-  public LauncherSubsystem(States.State botState) {
+  public LauncherSubsystem(States state) {
 
-    States.State m_botState = botState;
+    m_currentState = state;
     m_krakenMotorFollower.setControl(new Follower(m_krakenMotorMaster.getDeviceID(), MotorAlignmentValue.Opposed));
 
     // we may not need to use the Config lines
@@ -42,11 +44,13 @@ public class LauncherSubsystem extends SubsystemBase {
 
   public void startLauncher() {
     // Starts the motor to the set value
+    m_currentState.setState(State.Launching);
     m_krakenMotorMaster.set(LauncherConstants.kLauncherMotorSpeed);
   }
 
   public void stopLauncher() {
     // Stops the motor
+    m_currentState.setState(State.Initial);
     m_krakenMotorMaster.set(0);
   }
 

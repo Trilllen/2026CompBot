@@ -86,6 +86,7 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
     public static final int kGunnerControllerPort = 1;
     public static final double kDriveDeadband = 0.05;
+    public static final double kGunnerDeadBand = 0.05;
 
     public static final double kLeftTriggerThreshhold = 0.9;
     public static final double kRightTriggerThreshhold = 0.9;
@@ -148,21 +149,21 @@ public final class Constants {
 
   public static final class UpperIndexerConstants {
     public static final int kUpperIndexerCanId = 27;
-    public static final double kUpperIndexerMotorSpeed = 0.2;
-    public static final double kUpperIndexerReverseMotorSpeed = 0.1;
+    public static final double kUpperIndexerMotorSpeed = 1.0;
+    public static final double kUpperIndexerReverseMotorSpeed = 1.0;
   }
 
   public static final class IntakeConstants {
     public static final int kIntakeCanId = 28;
-    public static final double kIntakeMotorSpeed = 0.5;
-    public static final double kIntakeReverseMotorSpeed = 0.1;
+    public static final double kIntakeMotorSpeed = 1.0;
+    public static final double kIntakeReverseMotorSpeed = 1.0;
     public static final double kIntakeDelay = 1.5;
   }
 
   public static final class IntakeArmConstants {
     public static final int kIntakeArmCanId = 29;
-    public static final double kIntakeArmMotorSpeed = 1.0;
-    public static final double kIntakeArmReverseMotorSpeed = 1.0;
+    public static final double kIntakeArmMotorSpeed = 0.1;
+    public static final double kIntakeArmReverseMotorSpeed = 0.1;
     public static final double kPitchGearboxRatio = 12.0;  // 12:1 gear box  (drive24 code used 125)
     public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; //(drive24 code used 360 for the nominator)
     public static final double kPitchP = 0.8;
@@ -173,7 +174,7 @@ public final class Constants {
 
   public static final class LedConstants {
     public static final int kPwmPort = 9;
-    public static final int kTotalLeds = 164; // 60 LEDs per Meter for 2.74 meters (27in x 4)
+    public static final int kTotalLeds = 39 + 25;
   }
 
   public static final class dPadConstants {

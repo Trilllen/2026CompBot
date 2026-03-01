@@ -31,8 +31,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
   // GEAR_RATIO;
 
   // We can change these to what we want after testing
-  private static final double STOW_ROT = 10.0;
-  private static final double DEPLOY_ROT = 0.0;
+  private static final double STOW_ROT = 0.0;
+  private static final double DEPLOY_ROT = -28.5;
 
   // Increase this value to allow the motor to deliver a greater output
   private static final double MAX_OUTPUT = 0.9;
@@ -51,18 +51,18 @@ public class IntakeArmSubsystem extends SubsystemBase {
     // No setPositionConversionFactor available in this REV API; convert rotations
     // to degrees manually
     // Reset encoder to zero at startup (position in rotations)
-    intakeArmEncoder.setPosition(DEPLOY_ROT);
+    intakeArmEncoder.setPosition(STOW_ROT);
 
     // Configure PID tolerance
     pid.setTolerance(kPositionToleranceRot);
 
     m_targetRotation = STOW_ROT;
-    m_currentRotation = DEPLOY_ROT;
+    m_currentRotation = STOW_ROT;
 
-    m_isDeployed = true;
+    m_isDeployed = false;
 
     // Arm starts in the deployed position, but it needs to be stowed at the beginning of the match, so we set the target rotation to stow
-    stow();
+    //stow();
   }
 
   // TO DO: remove if not used
@@ -108,6 +108,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   public void stopArm(){
     intakeArmMotor.set(0);
+    output = 0;
     m_manualOverride = false;
     m_targetRotation = intakeArmEncoder.getPosition();
   }
@@ -128,7 +129,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
     } else if (output < -MAX_OUTPUT) {
       output = -MAX_OUTPUT;
     }
-System.out.println("Current Rot: " + m_currentRotation + " Target Rot: " + m_targetRotation + " Output: " + output);
-    intakeArmMotor.set(output);
+ System.out.println("Current Rot: " + m_currentRotation + " Target Rot: " + m_targetRotation + " Output: " + output);
+     intakeArmMotor.set(output);
   }
 }

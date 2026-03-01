@@ -6,6 +6,7 @@ package frc.robot;
 
 // imports for Rev Robotics MaxSwerve
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.dPadConstants;
 import frc.robot.commands.TurretCommands.AimTurretManualCommand;
@@ -17,6 +18,7 @@ import frc.robot.subsystems.IndexerSubsystem;
 import frc.robot.subsystems.IntakeArmSubsystem;
 import frc.robot.subsystems.UpperIndexerSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
@@ -44,7 +46,7 @@ public class RobotContainer {
 
     public CANBus m_CanBus = new CANBus();
     public Pigeon2 m_Pigeon;
-    private States.State m_botState = States.State.Initial;
+    public States m_currentState;
 
     // The robot's subsystems and commands are defined here...
 
@@ -56,6 +58,7 @@ public class RobotContainer {
     private final TurretSubsystem m_robotTurret;
     private final ClimberSubsystem m_robotClimber;
     private final LimeLightSubsystem m_Limelight;
+    private final LEDSubsystem m_LedSubsystem;
     private final IndexerSubsystem m_robotIndexer;
     private final LauncherSubsystem m_launcherSubsystem;
     private final UpperIndexerSubsystem m_UpperIndexerSubsystem;
@@ -72,17 +75,19 @@ public class RobotContainer {
     public RobotContainer() {
         // Initialize subsystems
         m_Pigeon = new Pigeon2(Constants.SensorConstants.kPigeonCanId, m_CanBus);
-        m_botState = States.State.Initial;
+        m_currentState = new States();
+        DriverStation.silenceJoystickConnectionWarning(true);
 
         m_robotDrive = new DriveSubsystem(m_Pigeon);
         m_robotIntake = new IntakeSubsystem();
         m_robotIntakeArm = new IntakeArmSubsystem();
         m_robotTurret = new TurretSubsystem();
         m_robotClimber = new ClimberSubsystem();
-        m_launcherSubsystem = new LauncherSubsystem(m_botState);
+        m_launcherSubsystem = new LauncherSubsystem(m_currentState);
         m_robotIndexer = new IndexerSubsystem();
         m_UpperIndexerSubsystem = new UpperIndexerSubsystem();
         m_Limelight = new LimeLightSubsystem(m_robotDrive);
+        m_LedSubsystem = new LEDSubsystem(m_currentState);
         configureButtonBindings();
 
         // Configure default commands
@@ -134,18 +139,20 @@ public class RobotContainer {
          * GUNNER CONTROLS
          */
 
-        // Right trigger (analog) -> toggle launcher on/off
+        // Right bumper (analog) -> toggle launcher on/off
+        m_gunnerController.rightBumper()
+                .toggleOnTrue(new StartEndCommand(
+                        () -> m_launcherSubsystem.startLauncher(),
+                        () -> m_launcherSubsystem.stopLauncher(),
+                        m_launcherSubsystem));
+        
+        // Right bumper -> toggle indexer on/off
+        // Upper indexer is set to follow lower indexer on the Rev Hardware Client
         m_gunnerController.rightTrigger(OIConstants.kRightTriggerThreshhold)
-                .toggleOnTrue(
-                        new StartEndCommand(
-                                () -> m_launcherSubsystem.startLauncher(),
-                                () -> m_launcherSubsystem.stopLauncher(),
-                                m_launcherSubsystem));
-
-        // Right trigger release -> ensure launcher and indexer stop
-        m_gunnerController.rightTrigger(OIConstants.kRightTriggerThreshhold)
-                .onFalse(new InstantCommand(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem)
-                        .andThen(() -> m_robotIndexer.stopIndexerMotor(), m_robotIndexer));
+                .toggleOnTrue(new StartEndCommand(
+                        () -> m_robotIndexer.startIndexerMotor(),
+                        () -> m_robotIndexer.stopIndexerMotor(),
+                        m_robotIndexer));
 
         // D-Pad Up -> extend climber
         m_gunnerController.pov(dPadConstants.kDPadUp)
@@ -171,13 +178,6 @@ public class RobotContainer {
                                         .retractClimber(Constants.ClimberConstants.kClimberReverseMotorSpeed),
                                 () -> m_robotClimber.stopClimber(),
                                 m_robotClimber));
-
-        // Right bumper -> toggle indexer on/off
-        m_gunnerController.rightBumper()
-                .toggleOnTrue(new StartEndCommand(
-                        () -> m_robotIndexer.startIndexerMotor(),
-                        () -> m_robotIndexer.stopIndexerMotor(),
-                        m_robotIndexer));
 
         // A button -> toggle intake arm stow/deploy
         m_gunnerController.a()
@@ -216,26 +216,35 @@ public class RobotContainer {
 
         // Left trigger -> start/stop intake rollers
         m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshhold)
-                .onTrue(new InstantCommand(() -> m_robotIntake.startIntakeRollers(), m_robotIntake));
-        m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshhold)
-                .onFalse(new InstantCommand(() -> m_robotIntake.stopIntakeRollers(), m_robotIntake));
+                .toggleOnTrue(
+                        new StartEndCommand(
+                                () -> m_robotIntake.startIntakeRollers(),
+                                () -> m_robotIntake.stopIntakeRollers(),
+                                m_robotIntake));
+        // changed to toggle, see code above
+        // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshhold)
+        //         .onTrue(new InstantCommand(() -> m_robotIntake.startIntakeRollers(), m_robotIntake));
+        // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshhold)
+        //         .onFalse(new InstantCommand(() -> m_robotIntake.stopIntakeRollers(), m_robotIntake));
 
         // Left bumper -> reverse intake rollers (while held)
         m_gunnerController.leftBumper()
                 .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(), m_robotIntake));
 
         //
-        m_robotTurret.setDefaultCommand(new AimTurretManualCommand(m_robotTurret, () -> m_gunnerController.getLeftX()));
+        m_robotTurret.setDefaultCommand(new AimTurretManualCommand(
+                m_robotTurret, 
+                () -> MathUtil.applyDeadband(m_gunnerController.getLeftX(), OIConstants.kGunnerDeadBand)));
     }
 
     /*
      * Gunner
-     * A -> Extend/Retract Intake (toggle) DONE
-     * B -> Track outpost with Limelight to shoot into alliance zone (hold) DONE
-     * X -> Latch Hook on climber (toggle) DONE
-     * Y -> Lock onto hub (hold)
+     * A -> Extend/Retract Intake (toggle)
+     * B -> Arm down (hold) 
+     * X -> Arm manual up (hold) 
+     * Y -> Lock onto hub (hold) TO DO
      * LB -> Reverse Intake Rollers (hold)
-     * RB -> Toggle indexer on and off (TOGGLE) DONE
+     * RB -> Toggle launcher on and off (TOGGLE) 
      * upper and lower indexer motor, instead of just while held
      * LeftJoystick ->
      * LeftJoystickClick ->
@@ -246,7 +255,7 @@ public class RobotContainer {
      * DPad Left -> Reverse Indexer (hold)
      * DPad Right -> Reverse launcher (hold)
      * LeftTrigger -> Start/stop Intake Rollers (toggle) DONE
-     * RightTrigger -> Toggle launchr on and off (TOGGLE) DONE
+     * RightTrigger -> Toggle indexers on and off (TOGGLE) DONE
      * launcher motors, instead of just while held
      * StartButton -> Start/Stop launcher motors (toggle) DONE
      * 
