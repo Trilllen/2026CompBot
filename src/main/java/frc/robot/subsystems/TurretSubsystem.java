@@ -31,7 +31,9 @@ public class TurretSubsystem extends SubsystemBase {
     // Used by both auto aim and Limelight aim
     // output is clamped in the turnTurret method, so we don't set output range here
     public void turnTurret(double speed) {
-        double clampSpeed = MathUtil.clamp(m_turretPID.calculate(0.0, speed), TurretConstants.kLowClamp, TurretConstants.kHighClamp);
+        double clampSpeed = MathUtil.clamp(speed,
+        TurretConstants.kLowClamp,
+        TurretConstants.kHighClamp);
         m_turretMotor.set(clampSpeed);
         System.out.println("Turning Turret at" + clampSpeed);
     }

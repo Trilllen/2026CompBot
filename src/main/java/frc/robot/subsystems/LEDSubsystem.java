@@ -78,10 +78,10 @@ public class LEDSubsystem extends SubsystemBase {
                     pattern = getSolidColor(0, 0, 255); // Blue
                     break;
                 case TeleopInPosition:
-                    pattern = getSolidColor(0, 255, 0); // Green
+                    pattern = getSolidColor(255, 0, 0); // Green
                     break;
                 case Launching:
-                    pattern = getBlinkingColor(255, 0, 255); // Purple
+                    pattern = getBlinkingColor(0, 255, 0); // Red
                     break;
                 case Fueling:
                     pattern = getBlinkingColor(0, 255, 255); // Cyan
@@ -90,7 +90,7 @@ public class LEDSubsystem extends SubsystemBase {
                     pattern = getBlinkingColor(255, 255, 0); // Yellow
                     break;
                 case Climbing:
-                    pattern = getBlinkingColor(255, 0, 0); // Red
+                    pattern = getBlinkingColor(0, 0, 255); // Red
                     break;
                 default:
                     pattern = getSolidColor(0, 0, 0); // Off                    
