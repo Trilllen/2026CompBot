@@ -9,6 +9,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.dPadConstants;
+import frc.robot.commands.TurretCommands.AimTurretLimeLightCommand;
 import frc.robot.commands.TurretCommands.AimTurretManualCommand;
 import frc.robot.Constants.States;
 import frc.robot.Constants.OIConstants;
@@ -197,7 +198,10 @@ public class RobotContainer {
                                 () -> m_robotIntakeArm.lowerArm(),
                                 () -> m_robotIntakeArm.stopArm(),
                                 m_robotIntakeArm));
-
+        m_gunnerController.y()
+                .whileTrue(
+                        new AimTurretLimeLightCommand(m_robotTurret)
+                );
         // D-Pad Left -> reverse indexer (while held)
         m_gunnerController.pov(dPadConstants.kDPadLeft)
                 .whileTrue(

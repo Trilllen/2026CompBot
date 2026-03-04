@@ -130,7 +130,7 @@ public final class Constants {
     public static final int kLauncherMotorMaster = 20;
     public static final int kLauncherMotorFollower = 21;
 
-    public static final double kLauncherMotorSpeed = 1;
+    public static final double kLauncherMotorSpeed = 0.7;
     public static final double kLauncherReverseMotorSpeed = 1;
   }
 
@@ -186,12 +186,12 @@ public final class Constants {
 
   public static final class TurretConstants {
     public static final int kTurretCanId = 30;
-    public static final double kP = 0.1;
+    public static final double kP = 0.05;
     public static final double kI = 0;
-    public static final double kD = 0;
+    public static final double kD = 0.01;
     public static final double kMinInput = -90;
     public static final double kMaxInput = 90;
-    public static final double kTargetToleranceDegrees = 5;
+    public static final double kTargetToleranceDegrees = 2;
     public static final double kLowClamp = -0.5;
     public static final double kHighClamp = 0.5;
   }

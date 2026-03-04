@@ -119,9 +119,9 @@ public class IntakeArmSubsystem extends SubsystemBase {
     // Get motor rotations
     m_currentRotation = intakeArmEncoder.getPosition() * IntakeArmConstants.kPitchEncoderPositionConversionFactor;
 
-    if (!m_manualOverride) {
-    output = pid.calculate(m_currentRotation, m_targetRotation);
-    }
+    // if (!m_manualOverride) {
+    // output = pid.calculate(m_currentRotation, m_targetRotation);
+    // }
       
     // Clamp to protect motor
     if (output > MAX_OUTPUT) {
@@ -129,7 +129,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
     } else if (output < -MAX_OUTPUT) {
       output = -MAX_OUTPUT;
     }
- System.out.println("Current Rot: " + m_currentRotation + " Target Rot: " + m_targetRotation + " Output: " + output);
+ //System.out.println("Current Rot: " + m_currentRotation + " Target Rot: " + m_targetRotation + " Output: " + output);
      intakeArmMotor.set(output);
   }
 }

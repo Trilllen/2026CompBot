@@ -26,6 +26,8 @@ public class TurretSubsystem extends SubsystemBase {
     public TurretSubsystem() {
         // Configure PID controller for continuous input (turret will be limited to 180 degrees)
         m_turretPID.enableContinuousInput(TurretConstants.kMinInput, TurretConstants.kMaxInput); // Adjust limits based on your turret's design and wiring
+        // Set the controller tolerance so we can check when we're "on target"
+        m_turretPID.setTolerance(TurretConstants.kTargetToleranceDegrees);
     }
 
     // Used by both auto aim and Limelight aim
@@ -41,17 +43,17 @@ public class TurretSubsystem extends SubsystemBase {
     public double getTx() {
         // Get the horizontal offset from the Limelight (returns 0 if no target)
         
-        System.out.println("[TURRET] limelight tx: " + LimelightHelpers.getTX("limelight")); // Debug print to check tx value
+        System.out.println("[TURRET] limelight tx: " + LimelightHelpers.getTX("limelight-tread")); // Debug print to check tx value
 
-        return LimelightHelpers.getTX("limelight"); // Use your Limelight's name if different
+        return LimelightHelpers.getTX("limelight-tread"); // Use your Limelight's name if different
     }
 
     public boolean hasTarget() {
         // Check if the Limelight has a valid target (tv returns 1.0 or 0.0)
         
-        System.out.println("[TURRET] limelight tv: " + LimelightHelpers.getTV("limelight")); // Debug print to check tv value
+        System.out.println("[TURRET] limelight tv: " + LimelightHelpers.getTV("limelight-tread")); // Debug print to check tv value
 
-        return LimelightHelpers.getTV("limelight");
+        return LimelightHelpers.getTV("limelight-tread");
     }
   
   public void lockOntoHub(){
@@ -81,7 +83,14 @@ public class TurretSubsystem extends SubsystemBase {
             // The 'tx' value is the error (difference from center, in degrees)
             // The PID controller calculates a motor output to make this error zero
             double tx = getTx();
-            double output = m_turretPID.calculate(0.0, -tx); // Aiming at tx=0
+            // PIDController.calculate(measurement, setpoint)
+            // we want measurement=tx and setpoint=0.0 (center of crosshair)
+            double output = m_turretPID.calculate(-tx, 0.0);
+
+            // If we're within the configured tolerance, don't drive the motor (avoid small oscillations)
+            if (m_turretPID.atSetpoint()) {
+                return 0.0;
+            }
             
             // Optional: Add a feedforward value to overcome static friction
             // output += Constants.Turret.kS; 
