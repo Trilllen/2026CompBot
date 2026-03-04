@@ -22,8 +22,11 @@ public class AimTurretLimeLightCommand extends Command {
 
     @Override
     public boolean isFinished() {
-        // Command finishes when the target is centered within a small tolerance
-        return m_turret.hasTarget() && Math.abs(m_turret.getTx()) < TurretConstants.kTargetToleranceDegrees;
+        // Don't finish on our own — let the trigger (holding Y) control lifetime.
+        // While the command is scheduled it will continue to call execute() so
+        // the turret keeps updating. The Trigger.whileTrue(...) mapping will
+        // cancel this command when the Y button is released.
+        return false;
     }
 
     @Override
