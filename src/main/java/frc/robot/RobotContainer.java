@@ -141,7 +141,7 @@ public class RobotContainer {
 
         // Right bumper (analog) -> toggle launcher on/off
         m_gunnerController.rightBumper()
-                .toggleOnTrue(new StartEndCommand(
+                .whileTrue(new StartEndCommand(
                         () -> m_launcherSubsystem.startLauncher(),
                         () -> m_launcherSubsystem.stopLauncher(),
                         m_launcherSubsystem));
@@ -149,7 +149,7 @@ public class RobotContainer {
         // Right bumper -> toggle indexer on/off
         // Upper indexer is set to follow lower indexer on the Rev Hardware Client
         m_gunnerController.rightTrigger(OIConstants.kRightTriggerThreshhold)
-                .toggleOnTrue(new StartEndCommand(
+                .whileTrue(new StartEndCommand(
                         () -> m_robotIndexer.startIndexerMotor(),
                         () -> m_robotIndexer.stopIndexerMotor(),
                         m_robotIndexer));
