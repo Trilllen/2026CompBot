@@ -152,7 +152,7 @@ public class LimeLightSubsystem extends SubsystemBase {
             System.out.println("active tags = " + m_allActiveTags);
         }
         // Look for the last result that has a valid target
-        if (m_result != null && m_result.targets_Fiducials.length > 0) {
+        if (m_result != null && m_result.targets_Fiducials.length > 0 && m_allActiveTags.size() != 0) {
             int nearestTag = m_allActiveTags.get(0);
             for (LimelightHelpers.LimelightTarget_Fiducial target : m_result.targets_Fiducials) {
                 if (m_allValidTagIds.contains((int) target.fiducialID) && (int) target.fiducialID == nearestTag) {
