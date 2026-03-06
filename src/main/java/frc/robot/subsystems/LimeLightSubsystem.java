@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
+import java.util.Optional;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
@@ -16,6 +19,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.Zones;
 
@@ -44,6 +48,11 @@ public class LimeLightSubsystem extends SubsystemBase {
     private final Set<Integer> BlueOutpostTags = Set.of(29, 30);
     private final Set<Integer> RedTrenchTags = Set.of(1, 6, 7, 12);
     private final Set<Integer> BlueTrenchTags = Set.of(17, 22, 23, 28);
+
+    //Hub field Coordinates 0,0 is the center x is length and y is width
+    private static final Translation2d HUB_RED = new Translation2d(0, 3.6449);
+    private static final Translation2d HUB_BLUE = new Translation2d(0, -3.6449);
+    private Translation2d m_hubCoordinates;
 
     private final Map<Zones, Set<Integer>> m_zoneMap = Map.of(
             Zones.RED_HUB, RedHubTags,
@@ -92,13 +101,16 @@ public class LimeLightSubsystem extends SubsystemBase {
         }
 
         // Determine alliance color and set HubTags and TrenchTags accordingly
-        activeAllianceColorHex = AllianceHelpers.getAllianceColor();
-        if (activeAllianceColorHex.equals("#FF0000")) { // Red Alliance
+        Alliance ally = DriverStation.getAlliance().orElse(Alliance.Blue);
+        if (ally == Alliance.Red) {
             m_activeHubTags = RedHubTags;
             m_activetrenchTags = RedTrenchTags;
-        } else
+            m_hubCoordinates = HUB_RED;
+        } else{
             m_activeHubTags = BlueHubTags;
-        m_activetrenchTags = BlueTrenchTags;
+            m_activetrenchTags = BlueTrenchTags;
+            m_hubCoordinates = HUB_BLUE;
+        }
     }
 
     public void driverMode() {
@@ -230,6 +242,11 @@ public class LimeLightSubsystem extends SubsystemBase {
         return poseArray[1];
     }
 
+    public double getPoseX() {
+        double[] poseArray = LimelightHelpers.getLimelightNTDoubleArray(VisionConstants.kCameraName, "botpose");
+        return poseArray[0];
+    }
+
     public double getHubPosition() {
         // Define the constant value
         final double CONSTANT = 23.5;
@@ -278,6 +295,11 @@ public class LimeLightSubsystem extends SubsystemBase {
         return target.getTargetPose_RobotSpace().getTranslation().toTranslation2d().getNorm();
     }
 
+    public double getDistanceToHub() {
+        Translation2d robot = new Translation2d(getPoseX(), getPoseY());
+        return robot.getDistance(m_hubCoordinates);
+    }
+    
     @Override
     public void periodic() {
         update();
