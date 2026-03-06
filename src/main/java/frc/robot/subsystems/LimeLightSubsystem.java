@@ -101,8 +101,7 @@ public class LimeLightSubsystem extends SubsystemBase {
         }
 
         // Determine alliance color and set HubTags and TrenchTags accordingly
-        Alliance ally = DriverStation.getAlliance().orElse(Alliance.Blue);
-        if (ally == Alliance.Red) {
+        if (isRedAlliance()) {
             m_activeHubTags = RedHubTags;
             m_activetrenchTags = RedTrenchTags;
             m_hubCoordinates = HUB_RED;
@@ -298,6 +297,14 @@ public class LimeLightSubsystem extends SubsystemBase {
     public double getDistanceToHub() {
         Translation2d robot = new Translation2d(getPoseX(), getPoseY());
         return robot.getDistance(m_hubCoordinates);
+    }
+
+    public boolean isRedAlliance() {
+        return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+    }
+        
+    public boolean isRightSideofHub() {
+           return (getPoseY() > 0 && isRedAlliance()) || (getPoseY() < 0 && !isRedAlliance());     
     }
     
     @Override
