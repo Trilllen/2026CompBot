@@ -57,7 +57,7 @@ public final class Constants {
     public static final int kFrontRightDrivingCanId = 15;
     public static final int kRearRightDrivingCanId = 17;
 
-    public static final int kFrontLeftTurningCanId = 10;//10;
+    public static final int kFrontLeftTurningCanId = 10;// 10;
     public static final int kRearLeftTurningCanId = 12;
     public static final int kFrontRightTurningCanId = 14;
     public static final int kRearRightTurningCanId = 16;
@@ -138,6 +138,13 @@ public final class Constants {
     public static final int kClimberMotorCanId = 25;
     public static final double kClimberMotorSpeed = 1;
     public static final double kClimberReverseMotorSpeed = 1;
+    // Digital input channel for the retract (bottom) limit switch
+    // Set to the appropriate DIO channel on your RoboRIO
+    public static final int kClimberRetractLimitChannel = 9;
+    // If true the DigitalInput.get() will return true when the switch is
+    // pressed. If your switch wiring is inverted (returns false when pressed),
+    // set this to false.
+    public static final boolean kRetractLimitPressedHigh = true;
   }
 
   public static final class IndexerConstants {
@@ -164,12 +171,12 @@ public final class Constants {
     public static final int kIntakeArmCanId = 29;
     public static final double kIntakeArmMotorSpeed = 0.1;
     public static final double kIntakeArmReverseMotorSpeed = 0.1;
-    public static final double kPitchGearboxRatio = 12.0;  // 12:1 gear box  (drive24 code used 125)
-    public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; //(drive24 code used 360 for the nominator)
+    public static final double kPitchGearboxRatio = 12.0; // 12:1 gear box (drive24 code used 125)
+    public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; // (drive24 code used                                                                                              // 360 for the                                                                                                // nominator)
     public static final double kPitchP = 0.8;
     public static final double kPitchI = 0.0;
     public static final double kPitchD = 0.0;
-    //public static final double kPitchFF = 0.0;
+    // public static final double kPitchFF = 0.0;
   }
 
   public static final class LedConstants {
@@ -189,11 +196,14 @@ public final class Constants {
     public static final double kP = 0.05;
     public static final double kI = 0;
     public static final double kD = 0.01;
-    public static final double kMinInput = -90;
-    public static final double kMaxInput = 90;
+    public static final double kMinInput = -25;
+    public static final double kMaxInput = 25;
     public static final double kTargetToleranceDegrees = 2;
     public static final double kLowClamp = -0.5;
     public static final double kHighClamp = 0.5;
+    // Conversion factor from encoder rotations to turret degrees. Adjust to
+    // match your gearbox: degrees = rotations * kTurretPositionConversion
+    public static final double kTurretPositionConversion = 360.0; // rotations -> degrees (default 1:1)
   }
 
   public static class States {
