@@ -98,7 +98,7 @@ public class LimeLightSubsystem extends SubsystemBase {
             m_activetrenchTags = RedTrenchTags;
         } else
             m_activeHubTags = BlueHubTags;
-            m_activetrenchTags = BlueTrenchTags;
+        m_activetrenchTags = BlueTrenchTags;
     }
 
     public void driverMode() {
@@ -198,7 +198,7 @@ public class LimeLightSubsystem extends SubsystemBase {
     public void attemptHubLockon() {
         if (m_result != null && m_result.targets_Fiducials.length > 0) {
             for (LimelightHelpers.LimelightTarget_Fiducial target : m_result.targets_Fiducials) {
-                if (m_activeHubTags.contains((int)target.fiducialID)) {
+                if (m_activeHubTags.contains((int) target.fiducialID)) {
                     double distance = get2dDistance(target);
                     if (distance < maxLockOnDistance && distance < m_currentLockDistance) {
                         m_currentLock = target;
@@ -223,6 +223,11 @@ public class LimeLightSubsystem extends SubsystemBase {
 
     public double getPitch() {
         return m_currentLock != null ? m_currentLock.ty : 0.0;
+    }
+
+    public double getPoseY() {
+        double[] poseArray = LimelightHelpers.getLimelightNTDoubleArray(VisionConstants.kCameraName, "botpose");
+        return poseArray[1];
     }
 
     public double getHubPosition() {
@@ -288,6 +293,8 @@ public class LimeLightSubsystem extends SubsystemBase {
             // // NetworkTableInstance.putBoolean("Ambiguous Pose", isAmbiguousPose());
             NetworkTableInstance.getDefault().getTable(VisionConstants.kCameraName).putValue("Distance",
                     NetworkTableValue.makeDouble(get2dDistance(m_currentLock)));
+            NetworkTableInstance.getDefault().getTable(VisionConstants.kCameraName).putValue("PoseY",
+                    NetworkTableValue.makeDouble(getPoseY()));
             NetworkTableInstance.getDefault().getTable(VisionConstants.kCameraName).putValue("HubPosition",
                     NetworkTableValue.makeDouble(getHubPosition()));
         }
