@@ -8,28 +8,19 @@ public class AimTurretLimeLightCommand extends Command {
     private TurretSubsystem m_turret;
     private LimeLightSubsystem m_limelight;
     private boolean isRed;
-    private enum AimZone {
-        FAR_LEFT,
-        FAR_RIGHT,
-        CENTER_LEFT,
-        CENTER_RIGHT,
-        NONE
-    }
-    private AimZone Zone;
+
 
     public AimTurretLimeLightCommand(TurretSubsystem turret, LimeLightSubsytem limelight) {
         m_turret = turret;
         m_limelight = limelight;
         isRed = m_limelight.isRedAlliance();
-        Zone = AimZone.NONE;
         addRequirements(m_turret);
     }
-
+    
     @Override
     public void execute() {
         // Get the calculated motor speed from the subsystem logic
-        
-        
+        m_limelight.getHubZone();
         
         double speed = m_turret.calculateTurretCommand();
         // Apply the speed to the motor
