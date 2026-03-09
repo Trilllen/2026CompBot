@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.Optional;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.math.geometry.Pose2d
+import edu.wpi.first.math.geometry.Pose2d;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
@@ -55,16 +55,15 @@ public class LimeLightSubsystem extends SubsystemBase {
     private static final Translation2d HUB_BLUE = new Translation2d(0, -3.6449);
     private Translation2d m_hubCoordinates;
 
-    private enum HubZone {
+    public enum HubZone {
     FAR_LEFT,
+    MED_LEFT,
     FAR_RIGHT,
     CENTER_LEFT,
     CENTER_RIGHT,
     NONE
     }
     private HubZone currentZone;
-
-    
 
     private final Map<Zones, Set<Integer>> m_zoneMap = Map.of(
             Zones.RED_HUB, RedHubTags,
@@ -335,11 +334,45 @@ public class LimeLightSubsystem extends SubsystemBase {
         if (angle < 0) {
             angle += 360;
         }
-        return angle
+        return angle;
     }    
-    public 
-
-
+    public HubZone getHubZone(){
+        if (isRedAlliance()){
+            return getHubZoneRed();
+        }
+        return getHubZoneBlue();
+    }
+    public HubZone getHubZoneRed(){
+        double angle = getAngleToHub();
+        if(angle >= 270 && angle < 300){
+            return HubZone.FAR_LEFT;
+        } else if (angle >= 300 && angle < 328.5){
+            return HubZone.MED_LEFT;
+        } else if (angle >= 328.5){
+            return HubZone.CENTER_LEFT;
+        } else if (angle >=0 && angle < 59){
+            return HubZone.CENTER_RIGHT;
+        } else if (angle >= 59 && angle < 90){
+            return HubZone.FAR_RIGHT;
+        } else{
+            return HubZone.NONE;
+        }
+    }
+    public HubZone getHubZoneBlue(){
+        if(angle >= 90 && angle < 121){
+            return HubZone.FAR_LEFT;
+        } else if (angle >= 121 && angle < 149){
+            return HubZone.MED_LEFT;
+        } else if (angle >= 149 && angle < 180){
+            return HubZone.CENTER_LEFT;
+        } else if (angle >=180 && angle < 240){
+            return HubZone.CENTER_RIGHT;
+        } else if (angle >= 240 && angle < 270){
+            return HubZone.FAR_RIGHT;
+        } else{
+            return HubZone.NONE;
+        }
+    }
     
     @Override
     public void periodic() {
