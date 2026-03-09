@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.Optional;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.math.geometry.Pose2d
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
@@ -54,6 +55,17 @@ public class LimeLightSubsystem extends SubsystemBase {
     private static final Translation2d HUB_BLUE = new Translation2d(0, -3.6449);
     private Translation2d m_hubCoordinates;
 
+    private enum HubZone {
+    FAR_LEFT,
+    FAR_RIGHT,
+    CENTER_LEFT,
+    CENTER_RIGHT,
+    NONE
+    }
+    private HubZone currentZone;
+
+    
+
     private final Map<Zones, Set<Integer>> m_zoneMap = Map.of(
             Zones.RED_HUB, RedHubTags,
             Zones.BLUE_HUB, BlueHubTags,
@@ -95,6 +107,7 @@ public class LimeLightSubsystem extends SubsystemBase {
         detectAprilTags();
         this.m_poseEstimator = null;
         this.m_gyro = null;
+        currentZone = HubZone.NONE;
         if (driveSubsystem != null) {
             this.m_poseEstimator = driveSubsystem.getPoseEstimator();
             this.m_gyro = driveSubsystem.getGyro(); // Initialize with appropriate parameters
@@ -162,6 +175,11 @@ public class LimeLightSubsystem extends SubsystemBase {
         if (m_allActiveTags.size() > 0) {
             System.out.println("active tags = " + m_allActiveTags);
         }
+
+        
+
+
+        
         // Look for the last result that has a valid target
         if (m_result != null && m_result.targets_Fiducials.length > 0 && m_allActiveTags.size() != 0) {
             int nearestTag = m_allActiveTags.get(0);
@@ -306,6 +324,22 @@ public class LimeLightSubsystem extends SubsystemBase {
     public boolean isRightSideofHub() {
            return (getPoseY() > 0 && isRedAlliance()) || (getPoseY() < 0 && !isRedAlliance());     
     }
+
+    public double getAngleToHub(){
+        Pose2d current_pose = this.m_poseEstimator.getEstimatedPosition();
+        double bot_x = current_pose.getX();
+        double bot_y = current_pose.getY();
+        double hub_x = m_hubCoordinates.getX();
+        double hub_y = m_hubCoordinates.getY();
+        double angle = Math.toDegrees(Math.atan2(bot_y - hub_y, bot_x - hub_x));
+        if (angle < 0) {
+            angle += 360;
+        }
+        return angle
+    }    
+    public 
+
+
     
     @Override
     public void periodic() {
