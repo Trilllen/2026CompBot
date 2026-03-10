@@ -13,6 +13,7 @@ import java.util.Optional;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
@@ -51,8 +52,8 @@ public class LimeLightSubsystem extends SubsystemBase {
     private final Set<Integer> BlueTrenchTags = Set.of(17, 22, 23, 28);
 
     //Hub field Coordinates 0,0 is the center x is length and y is width
-    private static final Translation2d HUB_RED = new Translation2d(0, 3.6449);
-    private static final Translation2d HUB_BLUE = new Translation2d(0, -3.6449);
+    private static final Translation2d HUB_RED = new Translation2d(11.901, 4.02);
+    private static final Translation2d HUB_BLUE = new Translation2d(4.6116, 4.02);
     private Translation2d m_hubCoordinates;
 
     public enum HubZone {
@@ -160,6 +161,8 @@ public class LimeLightSubsystem extends SubsystemBase {
         double currentTime = Timer.getFPGATimestamp();
         m_result = LimelightHelpers.getLatestResults(m_limelightCam);
         RawFiducial[] tags = LimelightHelpers.getRawFiducials(m_limelightCam);
+        updateRobotOrientation();
+        getHubZone();
         m_allActiveTags.clear();
         for (RawFiducial fiducial : tags) {
             m_allActiveTags.add((int) fiducial.id);
@@ -172,7 +175,7 @@ public class LimeLightSubsystem extends SubsystemBase {
             m_currentLockDistance = Double.MAX_VALUE;
         }
         if (m_allActiveTags.size() > 0) {
-            System.out.println("active tags = " + m_allActiveTags);
+            //System.out.println("active tags" + m_allActiveTags);
         }
 
         
@@ -199,7 +202,7 @@ public class LimeLightSubsystem extends SubsystemBase {
 
         // m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0,
         // 0, 0);
-        LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(m_limelightCam);
+        LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue(m_limelightCam);
         boolean doRejectUpdate = false;
 
         // if(Math.abs(m_gyro.getRate()) > 720) // if our angular velocity is greater
@@ -337,39 +340,50 @@ public class LimeLightSubsystem extends SubsystemBase {
         return angle;
     }    
     public HubZone getHubZone(){
-        if (isRedAlliance()){
-            return getHubZoneRed();
-        }
-        return getHubZoneBlue();
-    }
-    public HubZone getHubZoneRed(){
         double angle = getAngleToHub();
+        if (isRedAlliance()){
+            return getHubZoneRed(angle);
+        }
+        return getHubZoneBlue(angle);
+    }
+    public HubZone getHubZoneRed(double angle){
         if(angle >= 270 && angle < 300){
+            SmartDashboard.putString("Zone", "Far Left");
             return HubZone.FAR_LEFT;
         } else if (angle >= 300 && angle < 328.5){
+            SmartDashboard.putString("Zone", "Med Left");
             return HubZone.MED_LEFT;
         } else if (angle >= 328.5){
+            SmartDashboard.putString("Zone", "Center Left");
             return HubZone.CENTER_LEFT;
         } else if (angle >=0 && angle < 59){
+            SmartDashboard.putString("Zone", "Center Right");
             return HubZone.CENTER_RIGHT;
         } else if (angle >= 59 && angle < 90){
+            SmartDashboard.putString("Zone", "Far Right");
             return HubZone.FAR_RIGHT;
         } else{
+            SmartDashboard.putString("Zone", "NONE");
             return HubZone.NONE;
         }
     }
-    public HubZone getHubZoneBlue(){
+    public HubZone getHubZoneBlue(double angle){
         if(angle >= 90 && angle < 121){
             return HubZone.FAR_LEFT;
         } else if (angle >= 121 && angle < 149){
+            SmartDashboard.putString("Zone", "Med Left");
             return HubZone.MED_LEFT;
         } else if (angle >= 149 && angle < 180){
+            SmartDashboard.putString("Zone","Center Left");
             return HubZone.CENTER_LEFT;
         } else if (angle >=180 && angle < 240){
+            SmartDashboard.putString("Zone","Center Right");
             return HubZone.CENTER_RIGHT;
         } else if (angle >= 240 && angle < 270){
+            SmartDashboard.putString("Zone", "Far Right");
             return HubZone.FAR_RIGHT;
         } else{
+            SmartDashboard.putString("Zone", "None");
             return HubZone.NONE;
         }
     }
@@ -394,6 +408,7 @@ public class LimeLightSubsystem extends SubsystemBase {
             NetworkTableInstance.getDefault().getTable(VisionConstants.kCameraName).putValue("HubPosition",
                     NetworkTableValue.makeDouble(getHubPosition()));
         }
+        SmartDashboard.putNumber("HubAngle", getAngleToHub());
         // This method will be called once per scheduler run
 
         // tv int 1 if valid target exists. 0 if no valid targets exist
