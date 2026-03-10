@@ -3,23 +3,42 @@ package frc.robot.commands.TurretCommands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.TurretConstants;
 import frc.robot.subsystems.TurretSubsystem;
+import frc.robot.subsystems.LimeLightSubsystem;
 
 public class AimTurretLimeLightCommand extends Command {
-    private final TurretSubsystem m_turret;
+    private TurretSubsystem m_turret;
+    private LimeLightSubsystem m_limelight;
+    private boolean isRed;
 
-    public AimTurretLimeLightCommand(TurretSubsystem subsystem) {
-        m_turret = subsystem;
+
+    public AimTurretLimeLightCommand(TurretSubsystem turret, LimeLightSubsystem limelight) {
+        m_turret = turret;
+        m_limelight = limelight;
+        isRed = m_limelight.isRedAlliance();
         addRequirements(m_turret);
     }
 
+    public double calculateTurretCommand() {
+        // Get the current angle to the hub from the Limelight subsystem
+        double hubAngle = m_limelight.getAngleToHub();
+        double tx = 0.0;
+
+
+
+        return tx;
+    }
+    
     @Override
     public void execute() {
         // Get the calculated motor speed from the subsystem logic
-        double speed = m_turret.calculateTurretCommand();
+        m_limelight.getHubZone();
+
+        
+        double speed = m_turret.calculateTurretCommand(0);
         // Apply the speed to the motor
         m_turret.turnTurret(speed);
     }
-
+    
     @Override
     public boolean isFinished() {
         // Don't finish on our own — let the trigger (holding Y) control lifetime.

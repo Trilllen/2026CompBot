@@ -9,6 +9,11 @@ import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
+import java.util.Optional;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 
@@ -16,8 +21,10 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.Zones;
+import frc.robot.Constants.AimingConstants;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -44,6 +51,21 @@ public class LimeLightSubsystem extends SubsystemBase {
     private final Set<Integer> BlueOutpostTags = Set.of(29, 30);
     private final Set<Integer> RedTrenchTags = Set.of(1, 6, 7, 12);
     private final Set<Integer> BlueTrenchTags = Set.of(17, 22, 23, 28);
+
+    //Hub field Coordinates 0,0 is the center x is length and y is width
+    private static final Translation2d HUB_RED = new Translation2d(11.901, 4.02);
+    private static final Translation2d HUB_BLUE = new Translation2d(4.6116, 4.02);
+    private Translation2d m_hubCoordinates;
+
+    public enum HubZone {
+    FAR_LEFT,
+    MED_LEFT,
+    FAR_RIGHT,
+    CENTER_LEFT,
+    CENTER_RIGHT,
+    NONE
+    }
+    private HubZone currentZone;
 
     private final Map<Zones, Set<Integer>> m_zoneMap = Map.of(
             Zones.RED_HUB, RedHubTags,
@@ -86,21 +108,26 @@ public class LimeLightSubsystem extends SubsystemBase {
         detectAprilTags();
         this.m_poseEstimator = null;
         this.m_gyro = null;
+        currentZone = HubZone.NONE;
         if (driveSubsystem != null) {
             this.m_poseEstimator = driveSubsystem.getPoseEstimator();
             this.m_gyro = driveSubsystem.getGyro(); // Initialize with appropriate parameters
         }
 
         // Determine alliance color and set HubTags and TrenchTags accordingly
-        activeAllianceColorHex = AllianceHelpers.getAllianceColor();
-        if (activeAllianceColorHex.equals("#FF0000")) { // Red Alliance
+        if (isRedAlliance()) {
             m_activeHubTags = RedHubTags;
             m_activetrenchTags = RedTrenchTags;
-        } else
+            m_hubCoordinates = HUB_RED;
+        } else{
             m_activeHubTags = BlueHubTags;
-        m_activetrenchTags = BlueTrenchTags;
+            m_activetrenchTags = BlueTrenchTags;
+            m_hubCoordinates = HUB_BLUE;
+        }
     }
 
+    public record ZoneData(HubZone zone, double leftAngle, int leftTag, double rightAngle, int rightTag){}
+    
     public void driverMode() {
         LimelightHelpers.setLEDMode_ForceOff(m_limelightCam);
         LimelightHelpers.setStreamMode_Standard(m_limelightCam);
@@ -137,6 +164,8 @@ public class LimeLightSubsystem extends SubsystemBase {
         double currentTime = Timer.getFPGATimestamp();
         m_result = LimelightHelpers.getLatestResults(m_limelightCam);
         RawFiducial[] tags = LimelightHelpers.getRawFiducials(m_limelightCam);
+        updateRobotOrientation();
+        getHubZoneData();
         m_allActiveTags.clear();
         for (RawFiducial fiducial : tags) {
             m_allActiveTags.add((int) fiducial.id);
@@ -149,8 +178,13 @@ public class LimeLightSubsystem extends SubsystemBase {
             m_currentLockDistance = Double.MAX_VALUE;
         }
         if (m_allActiveTags.size() > 0) {
-            System.out.println("active tags = " + m_allActiveTags);
+            //System.out.println("active tags" + m_allActiveTags);
         }
+
+        
+
+
+        
         // Look for the last result that has a valid target
         if (m_result != null && m_result.targets_Fiducials.length > 0 && m_allActiveTags.size() != 0) {
             int nearestTag = m_allActiveTags.get(0);
@@ -171,7 +205,7 @@ public class LimeLightSubsystem extends SubsystemBase {
 
         // m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0,
         // 0, 0);
-        LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(m_limelightCam);
+        LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue(m_limelightCam);
         boolean doRejectUpdate = false;
 
         // if(Math.abs(m_gyro.getRate()) > 720) // if our angular velocity is greater
@@ -230,6 +264,11 @@ public class LimeLightSubsystem extends SubsystemBase {
         return poseArray[1];
     }
 
+    public double getPoseX() {
+        double[] poseArray = LimelightHelpers.getLimelightNTDoubleArray(VisionConstants.kCameraName, "botpose");
+        return poseArray[0];
+    }
+    
     public double getHubPosition() {
         // Define the constant value
         final double CONSTANT = 23.5;
@@ -278,6 +317,134 @@ public class LimeLightSubsystem extends SubsystemBase {
         return target.getTargetPose_RobotSpace().getTranslation().toTranslation2d().getNorm();
     }
 
+    public double getDistanceToHub() {
+        Translation2d robot = new Translation2d(getPoseX(), getPoseY());
+        return robot.getDistance(m_hubCoordinates);
+    }
+
+    public boolean isRedAlliance() {
+        return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+    }
+        
+    public boolean isRightSideofHub() {
+           return (getPoseY() > 0 && isRedAlliance()) || (getPoseY() < 0 && !isRedAlliance());     
+    }
+
+    public double getAngleToHub(){
+        Pose2d current_pose = this.m_poseEstimator.getEstimatedPosition();
+        double bot_x = current_pose.getX();
+        double bot_y = current_pose.getY();
+        double hub_x = m_hubCoordinates.getX();
+        double hub_y = m_hubCoordinates.getY();
+        double angle = Math.toDegrees(Math.atan2(bot_y - hub_y, bot_x - hub_x));
+        if (angle < 0) {
+            angle += 360;
+        }
+        return angle;
+    }
+
+    public ZoneData getHubZoneData() {
+        double angle = getAngleToHub();
+    
+        ZoneData data;
+    
+        if (isRedAlliance()) {
+            data = getHubZoneDataRed(angle);
+        } else {
+            data = getHubZoneDataBlue(angle);
+        }
+    
+        SmartDashboard.putString("Zone", data.zone().toString());
+        SmartDashboard.putNumber("Zone Left Angle", data.leftAngle());
+        SmartDashboard.putNumber("Zone Right Angle", data.rightAngle());
+        SmartDashboard.putNumber("Zone Left Tag", data.leftTag());
+        SmartDashboard.putNumber("Zone Right Tag", data.rightTag());
+        return data;
+    }
+    
+    public ZoneData getHubZoneDataRed(double angle){
+
+        if(angle >= AimingConstants.RED_FAR_LEFT && angle < AimingConstants.RED_MED_LEFT){
+            return new ZoneData(HubZone.FAR_LEFT,
+                    AimingConstants.RED_FAR_LEFT,
+                    5,
+                    AimingConstants.RED_MED_LEFT,
+                    8);
+    
+        } else if (angle >= AimingConstants.RED_MED_LEFT && angle < AimingConstants.RED_NEAR_LEFT){
+            return new ZoneData(HubZone.MED_LEFT,
+                    AimingConstants.RED_MED_LEFT,
+                    8,
+                    AimingConstants.RED_NEAR_LEFT,
+                    9);
+    
+        } else if (angle >= AimingConstants.RED_NEAR_LEFT){
+            return new ZoneData(HubZone.CENTER_LEFT,
+                    AimingConstants.RED_NEAR_LEFT,
+                    9,
+                    360,
+                    10);
+    
+        } else if (angle >= AimingConstants.RED_CENTER && angle < AimingConstants.RED_MED_RIGHT){
+            return new ZoneData(HubZone.CENTER_RIGHT,
+                    AimingConstants.RED_CENTER,
+                    10,
+                    AimingConstants.RED_MED_RIGHT,
+                    11);
+    
+        } else if (angle >= AimingConstants.RED_MED_RIGHT && angle < AimingConstants.RED_FAR_RIGHT){
+            return new ZoneData(HubZone.FAR_RIGHT,
+                    AimingConstants.RED_MED_RIGHT,
+                    11,
+                    AimingConstants.RED_FAR_RIGHT,
+                    2);
+    
+        } else{
+            return new ZoneData(HubZone.NONE, 0, 0, 0, 0);
+        }
+    }
+    public ZoneData getHubZoneDataBlue(double angle) {
+        
+        if (angle >= AimingConstants.BLUE_FAR_LEFT && angle < AimingConstants.BLUE_MED_LEFT) {
+            return new ZoneData(HubZone.FAR_LEFT,
+                    AimingConstants.BLUE_FAR_LEFT,
+                    21,
+                    AimingConstants.BLUE_MED_LEFT,
+                    24);
+        
+        } else if (angle >= AimingConstants.BLUE_MED_LEFT && angle < AimingConstants.BLUE_NEAR_LEFT) {
+            return new ZoneData(HubZone.MED_LEFT,
+                    AimingConstants.BLUE_MED_LEFT,
+                    24,
+                    AimingConstants.BLUE_NEAR_LEFT,
+                    25);
+        
+        } else if (angle >= AimingConstants.BLUE_NEAR_LEFT && angle < AimingConstants.BLUE_CENTER) {
+            return new ZoneData(HubZone.CENTER_LEFT,
+                    AimingConstants.BLUE_NEAR_LEFT,
+                    25,
+                    AimingConstants.BLUE_CENTER,
+                    26);
+        
+        } else if (angle >= AimingConstants.BLUE_CENTER && angle < AimingConstants.BLUE_MED_RIGHT) {
+            return new ZoneData(HubZone.CENTER_RIGHT,
+                    AimingConstants.BLUE_CENTER,
+                    26,
+                    AimingConstants.BLUE_MED_RIGHT,
+                    27);
+        
+        } else if (angle >= AimingConstants.BLUE_MED_RIGHT && angle < AimingConstants.BLUE_FAR_RIGHT) {
+            return new ZoneData(HubZone.FAR_RIGHT,
+                    AimingConstants.BLUE_MED_RIGHT,
+                    27,
+                    AimingConstants.BLUE_FAR_RIGHT,
+                    18);
+        
+        } else {
+            return new ZoneData(HubZone.NONE, 0, 0, 0, 0);
+        }
+    }
+    
     @Override
     public void periodic() {
         update();
@@ -298,6 +465,7 @@ public class LimeLightSubsystem extends SubsystemBase {
             NetworkTableInstance.getDefault().getTable(VisionConstants.kCameraName).putValue("HubPosition",
                     NetworkTableValue.makeDouble(getHubPosition()));
         }
+        SmartDashboard.putNumber("HubAngle", getAngleToHub());
         // This method will be called once per scheduler run
 
         // tv int 1 if valid target exists. 0 if no valid targets exist
