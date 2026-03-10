@@ -184,6 +184,23 @@ public final class Constants {
     public static final int kTotalLeds = 39 + 25;
   }
 
+  public static final class AimingConstants {
+    public static final double RED_FAR_LEFT = 270;
+    public static final double RED_MED_LEFT = 300;
+    public static final double RED_NEAR_LEFT = 323;
+    public static final double RED_CENTER = 0;
+    public static final double RED_MED_RIGHT = 59;
+    public static final double RED_FAR_RIGHT = 90;
+    public static final double BLUE_FAR_LEFT = 90;
+    public static final double BLUE_MED_LEFT = 121;
+    public static final double BLUE_NEAR_LEFT = 149;
+    public static final double BLUE_CENTER = 180;
+    public static final double BLUE_MED_RIGHT = 240;
+    public static final double BLUE_FAR_RIGHT = 270;
+
+    
+  }
+  
   public static final class dPadConstants {
     public static final int kDPadUp = 0;
     public static final int kDPadRight = 90;
