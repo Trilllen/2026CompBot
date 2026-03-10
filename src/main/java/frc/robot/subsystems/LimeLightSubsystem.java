@@ -129,7 +129,6 @@ public class LimeLightSubsystem extends SubsystemBase {
     public record ZoneData(HubZone zone, double leftAngle, int leftTag, double rightAngle, int rightTag){}
     
     public void driverMode() {
-        LimelightHelpers.setLEDMode_ForceOff(m_limelightCam);
         LimelightHelpers.setStreamMode_Standard(m_limelightCam);
     }
 
@@ -243,6 +242,10 @@ public class LimeLightSubsystem extends SubsystemBase {
         }
     }
 
+    public ArrayList<Integer> getVisibleAprilTagIDs() {
+        return new ArrayList<>(m_allActiveTags);
+    }
+    
     public int getApriltagID() {
         return m_currentLock != null ? (int) m_currentLock.fiducialID : -1;
     }
@@ -260,13 +263,11 @@ public class LimeLightSubsystem extends SubsystemBase {
     }
 
     public double getPoseY() {
-        double[] poseArray = LimelightHelpers.getLimelightNTDoubleArray(VisionConstants.kCameraName, "botpose");
-        return poseArray[1];
+        return m_poseEstimator.getEstimatedPosition().getY();
     }
 
     public double getPoseX() {
-        double[] poseArray = LimelightHelpers.getLimelightNTDoubleArray(VisionConstants.kCameraName, "botpose");
-        return poseArray[0];
+        return m_poseEstimator.getEstimatedPosition().getX();
     }
     
     public double getHubPosition() {
