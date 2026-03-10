@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.utils.AllianceHelpers;
 import edu.wpi.first.cameraserver.CameraServer;
 import frc.robot.Constants;
+import com.ctre.phoenix6.SignalLogger;
 
 /**
  * The methods in this class are called automatically corresponding to each
@@ -42,6 +43,8 @@ public class Robot extends TimedRobot {
     // and put our
     // autonomous chooser on the dashboard.
     // Set the data
+    SignalLogger.stop();
+
     m_robotContainer = new RobotContainer();
   }
 

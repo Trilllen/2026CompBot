@@ -127,14 +127,14 @@ public class TurretSubsystem extends SubsystemBase {
 
     }
 
-    public double calculateTurretCommand() {
+    public double calculateTurretCommand(double setpoint) {
         if (hasTarget()) {
             // The 'tx' value is the error (difference from center, in degrees)
             // The PID controller calculates a motor output to make this error zero
             double tx = getTx();
             // PIDController.calculate(measurement, setpoint)
             // we want measurement=tx and setpoint=0.0 (center of crosshair)
-            double output = m_turretPID.calculate(-tx, 0.0);
+            double output = m_turretPID.calculate(-tx, setpoint);
 
             // If we're within the configured tolerance, don't drive the motor (avoid small
             // oscillations)
