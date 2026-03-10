@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.Zones;
+import frc.robot.Constants.AimingConstants;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -125,6 +126,8 @@ public class LimeLightSubsystem extends SubsystemBase {
         }
     }
 
+    public record ZoneData(HubZone zone, double leftAngle, int leftTag, double rightAngle, int rightTag){}
+    
     public void driverMode() {
         LimelightHelpers.setLEDMode_ForceOff(m_limelightCam);
         LimelightHelpers.setStreamMode_Standard(m_limelightCam);
@@ -162,7 +165,7 @@ public class LimeLightSubsystem extends SubsystemBase {
         m_result = LimelightHelpers.getLatestResults(m_limelightCam);
         RawFiducial[] tags = LimelightHelpers.getRawFiducials(m_limelightCam);
         updateRobotOrientation();
-        getHubZone();
+        getHubZoneData();
         m_allActiveTags.clear();
         for (RawFiducial fiducial : tags) {
             m_allActiveTags.add((int) fiducial.id);
@@ -265,7 +268,7 @@ public class LimeLightSubsystem extends SubsystemBase {
         double[] poseArray = LimelightHelpers.getLimelightNTDoubleArray(VisionConstants.kCameraName, "botpose");
         return poseArray[0];
     }
-
+    
     public double getHubPosition() {
         // Define the constant value
         final double CONSTANT = 23.5;
@@ -338,53 +341,107 @@ public class LimeLightSubsystem extends SubsystemBase {
             angle += 360;
         }
         return angle;
-    }    
-    public HubZone getHubZone(){
+    }
+
+    public ZoneData getHubZoneData() {
         double angle = getAngleToHub();
-        if (isRedAlliance()){
-            return getHubZoneRed(angle);
+    
+        ZoneData data;
+    
+        if (isRedAlliance()) {
+            data = getHubZoneDataRed(angle);
+        } else {
+            data = getHubZoneDataBlue(angle);
         }
-        return getHubZoneBlue(angle);
+    
+        SmartDashboard.putString("Zone", data.zone().toString());
+        SmartDashboard.putNumber("Zone Left Angle", data.leftAngle());
+        SmartDashboard.putNumber("Zone Right Angle", data.rightAngle());
+        SmartDashboard.putNumber("Zone Left Tag", data.leftTag());
+        SmartDashboard.putNumber("Zone Right Tag", data.rightTag());
+        return data;
     }
-    public HubZone getHubZoneRed(double angle){
-        if(angle >= 270 && angle < 300){
-            SmartDashboard.putString("Zone", "Far Left");
-            return HubZone.FAR_LEFT;
-        } else if (angle >= 300 && angle < 328.5){
-            SmartDashboard.putString("Zone", "Med Left");
-            return HubZone.MED_LEFT;
-        } else if (angle >= 328.5){
-            SmartDashboard.putString("Zone", "Center Left");
-            return HubZone.CENTER_LEFT;
-        } else if (angle >=0 && angle < 59){
-            SmartDashboard.putString("Zone", "Center Right");
-            return HubZone.CENTER_RIGHT;
-        } else if (angle >= 59 && angle < 90){
-            SmartDashboard.putString("Zone", "Far Right");
-            return HubZone.FAR_RIGHT;
+    
+    public ZoneData getHubZoneDataRed(double angle){
+
+        if(angle >= AimingConstants.RED_FAR_LEFT && angle < AimingConstants.RED_MED_LEFT){
+            return new ZoneData(HubZone.FAR_LEFT,
+                    AimingConstants.RED_FAR_LEFT,
+                    5,
+                    AimingConstants.RED_MED_LEFT,
+                    8);
+    
+        } else if (angle >= AimingConstants.RED_MED_LEFT && angle < AimingConstants.RED_NEAR_LEFT){
+            return new ZoneData(HubZone.MED_LEFT,
+                    AimingConstants.RED_MED_LEFT,
+                    8,
+                    AimingConstants.RED_NEAR_LEFT,
+                    9);
+    
+        } else if (angle >= AimingConstants.RED_NEAR_LEFT){
+            return new ZoneData(HubZone.CENTER_LEFT,
+                    AimingConstants.RED_NEAR_LEFT,
+                    9,
+                    360,
+                    10);
+    
+        } else if (angle >= AimingConstants.RED_CENTER && angle < AimingConstants.RED_MED_RIGHT){
+            return new ZoneData(HubZone.CENTER_RIGHT,
+                    AimingConstants.RED_CENTER,
+                    10,
+                    AimingConstants.RED_MED_RIGHT,
+                    11);
+    
+        } else if (angle >= AimingConstants.RED_MED_RIGHT && angle < AimingConstants.RED_FAR_RIGHT){
+            return new ZoneData(HubZone.FAR_RIGHT,
+                    AimingConstants.RED_MED_RIGHT,
+                    11,
+                    AimingConstants.RED_FAR_RIGHT,
+                    2);
+    
         } else{
-            SmartDashboard.putString("Zone", "NONE");
-            return HubZone.NONE;
+            return new ZoneData(HubZone.NONE, 0, 0, 0, 0);
         }
     }
-    public HubZone getHubZoneBlue(double angle){
-        if(angle >= 90 && angle < 121){
-            return HubZone.FAR_LEFT;
-        } else if (angle >= 121 && angle < 149){
-            SmartDashboard.putString("Zone", "Med Left");
-            return HubZone.MED_LEFT;
-        } else if (angle >= 149 && angle < 180){
-            SmartDashboard.putString("Zone","Center Left");
-            return HubZone.CENTER_LEFT;
-        } else if (angle >=180 && angle < 240){
-            SmartDashboard.putString("Zone","Center Right");
-            return HubZone.CENTER_RIGHT;
-        } else if (angle >= 240 && angle < 270){
-            SmartDashboard.putString("Zone", "Far Right");
-            return HubZone.FAR_RIGHT;
-        } else{
-            SmartDashboard.putString("Zone", "None");
-            return HubZone.NONE;
+    public ZoneData getHubZoneDataBlue(double angle) {
+        
+        if (angle >= AimingConstants.BLUE_FAR_LEFT && angle < AimingConstants.BLUE_MED_LEFT) {
+            return new ZoneData(HubZone.FAR_LEFT,
+                    AimingConstants.BLUE_FAR_LEFT,
+                    21,
+                    AimingConstants.BLUE_MED_LEFT,
+                    24);
+        
+        } else if (angle >= AimingConstants.BLUE_MED_LEFT && angle < AimingConstants.BLUE_NEAR_LEFT) {
+            return new ZoneData(HubZone.MED_LEFT,
+                    AimingConstants.BLUE_MED_LEFT,
+                    24,
+                    AimingConstants.BLUE_NEAR_LEFT,
+                    25);
+        
+        } else if (angle >= AimingConstants.BLUE_NEAR_LEFT && angle < AimingConstants.BLUE_CENTER) {
+            return new ZoneData(HubZone.CENTER_LEFT,
+                    AimingConstants.BLUE_NEAR_LEFT,
+                    25,
+                    AimingConstants.BLUE_CENTER,
+                    26);
+        
+        } else if (angle >= AimingConstants.BLUE_CENTER && angle < AimingConstants.BLUE_MED_RIGHT) {
+            return new ZoneData(HubZone.CENTER_RIGHT,
+                    AimingConstants.BLUE_CENTER,
+                    26,
+                    AimingConstants.BLUE_MED_RIGHT,
+                    27);
+        
+        } else if (angle >= AimingConstants.BLUE_MED_RIGHT && angle < AimingConstants.BLUE_FAR_RIGHT) {
+            return new ZoneData(HubZone.FAR_RIGHT,
+                    AimingConstants.BLUE_MED_RIGHT,
+                    27,
+                    AimingConstants.BLUE_FAR_RIGHT,
+                    18);
+        
+        } else {
+            return new ZoneData(HubZone.NONE, 0, 0, 0, 0);
         }
     }
     
