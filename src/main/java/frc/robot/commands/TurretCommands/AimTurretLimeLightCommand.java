@@ -71,7 +71,7 @@ public class AimTurretLimeLightCommand extends Command {
             double tagSpacing = getTagSpacing(data);
             double offset = tagSpacing * interpolation;
 
-            double speed = m_turret.calculateTurretCommand(0);
+            double speed = m_turret.calculateTurretCommand(data.leftTag(), offset);
             // Apply the speed to the motor
             m_turret.turnTurret(speed);
         }

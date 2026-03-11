@@ -25,7 +25,7 @@ public class LauncherSubsystem extends SubsystemBase {
   private final TalonFX m_krakenMotorMaster = new TalonFX(LauncherConstants.kLauncherMotorMaster); // Replace 10 with your motor's CAN ID
   private final TalonFX m_krakenMotorFollower = new  TalonFX (LauncherConstants.kLauncherMotorFollower);
   public States m_currentState;
-  private boolean throttle;
+  private double throttle;
   private boolean launcherIsOn = false;
 
   public LauncherSubsystem(States state) {
@@ -70,7 +70,7 @@ public class LauncherSubsystem extends SubsystemBase {
   public void periodic() {
 
     if (launcherIsOn){
-      throttle SmartDashboard.getNumber("[THROTTLE]", 0.1);
+      throttle = SmartDashboard.getNumber("[THROTTLE]", 0.1);
       m_krakenMotorMaster.set(throttle);
     }else{
       m_krakenMotorMaster.set(0);
