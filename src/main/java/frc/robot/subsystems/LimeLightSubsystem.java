@@ -52,19 +52,20 @@ public class LimeLightSubsystem extends SubsystemBase {
     private final Set<Integer> RedTrenchTags = Set.of(1, 6, 7, 12);
     private final Set<Integer> BlueTrenchTags = Set.of(17, 22, 23, 28);
 
-    //Hub field Coordinates 0,0 is the center x is length and y is width
+    // Hub field Coordinates 0,0 is the center x is length and y is width
     private static final Translation2d HUB_RED = new Translation2d(11.901, 4.02);
     private static final Translation2d HUB_BLUE = new Translation2d(4.6116, 4.02);
     private Translation2d m_hubCoordinates;
 
     public enum HubZone {
-    FAR_LEFT,
-    MED_LEFT,
-    FAR_RIGHT,
-    CENTER_LEFT,
-    CENTER_RIGHT,
-    NONE
+        FAR_LEFT,
+        MED_LEFT,
+        FAR_RIGHT,
+        CENTER_LEFT,
+        CENTER_RIGHT,
+        NONE
     }
+
     private HubZone currentZone;
 
     private final Map<Zones, Set<Integer>> m_zoneMap = Map.of(
@@ -119,15 +120,16 @@ public class LimeLightSubsystem extends SubsystemBase {
             m_activeHubTags = RedHubTags;
             m_activetrenchTags = RedTrenchTags;
             m_hubCoordinates = HUB_RED;
-        } else{
+        } else {
             m_activeHubTags = BlueHubTags;
             m_activetrenchTags = BlueTrenchTags;
             m_hubCoordinates = HUB_BLUE;
         }
     }
 
-    public record ZoneData(HubZone zone, double leftAngle, int leftTag, double rightAngle, int rightTag){}
-    
+    public record ZoneData(HubZone zone, double leftAngle, int leftTag, double rightAngle, int rightTag) {
+    }
+
     public void driverMode() {
         LimelightHelpers.setStreamMode_Standard(m_limelightCam);
     }
@@ -177,13 +179,9 @@ public class LimeLightSubsystem extends SubsystemBase {
             m_currentLockDistance = Double.MAX_VALUE;
         }
         if (m_allActiveTags.size() > 0) {
-            //System.out.println("active tags" + m_allActiveTags);
+            // System.out.println("active tags" + m_allActiveTags);
         }
 
-        
-
-
-        
         // Look for the last result that has a valid target
         if (m_result != null && m_result.targets_Fiducials.length > 0 && m_allActiveTags.size() != 0) {
             int nearestTag = m_allActiveTags.get(0);
@@ -245,7 +243,7 @@ public class LimeLightSubsystem extends SubsystemBase {
     public ArrayList<Integer> getVisibleAprilTagIDs() {
         return new ArrayList<>(m_allActiveTags);
     }
-    
+
     public int getApriltagID() {
         return m_currentLock != null ? (int) m_currentLock.fiducialID : -1;
     }
@@ -269,46 +267,6 @@ public class LimeLightSubsystem extends SubsystemBase {
     public double getPoseX() {
         return m_poseEstimator.getEstimatedPosition().getX();
     }
-    
-    public double getHubPosition() {
-        // Define the constant value
-        final double CONSTANT = 23.5;
-        double distApril = get2dDistance(m_currentLock);
-        double thetaApril = 30.0;
-        // --- Numerator Calculation ---
-        // Numerator: 23.5 * (θ_april + 90°)
-        double numerator = CONSTANT * (thetaApril + 90.0);
-
-        // --- Denominator Calculation ---
-        // First, convert the angle to radians for the cosine function
-        double angleInRadians = Math.toRadians(thetaApril + 90.0);
-
-        // Calculate the terms inside the square root
-        // Term 1: 23.5²
-        double term1 = CONSTANT * CONSTANT;
-        // Term 2: D_april
-        double term2 = distApril;
-        // Term 3: 2 * 23.5 * D_april * cos(θ_april + 90°)
-        double term3 = Math.abs(2.0 * CONSTANT * distApril * Math.cos(angleInRadians));
-
-        // Denominator: √(term1 + term2 + term3)
-        // System.out.println("Term 1 (23.5²): " + term1);
-        // System.out.println("Term 2 (D_april): " + term2);
-        // System.out.println("Term 3 (2 * 23.5 * D_april * cos(θ_april + 90°)): " +
-        // term3);
-        double denominator = Math.sqrt(term1 + term2 + term3);
-
-        // --- Final Calculation ---
-        // It's good practice to check for division by zero, though unlikely with this
-        // formula.
-        double result;
-        if (denominator == 0) {
-            result = 0.0;
-        } else {
-            result = numerator / denominator;
-        }
-        return result;
-    }
 
     // public boolean isAmbiguousPose() {
     // return currentLock != null && currentLock.ambiguity > 0.1;
@@ -326,12 +284,12 @@ public class LimeLightSubsystem extends SubsystemBase {
     public boolean isRedAlliance() {
         return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
     }
-        
+
     public boolean isRightSideofHub() {
-           return (getPoseY() > 0 && isRedAlliance()) || (getPoseY() < 0 && !isRedAlliance());     
+        return (getPoseY() > 0 && isRedAlliance()) || (getPoseY() < 0 && !isRedAlliance());
     }
 
-    public double getAngleToHub(){
+    public double getAngleToHub() {
         Pose2d current_pose = this.m_poseEstimator.getEstimatedPosition();
         double bot_x = current_pose.getX();
         double bot_y = current_pose.getY();
@@ -346,15 +304,15 @@ public class LimeLightSubsystem extends SubsystemBase {
 
     public ZoneData getHubZoneData() {
         double angle = getAngleToHub();
-    
+
         ZoneData data;
-    
+
         if (isRedAlliance()) {
             data = getHubZoneDataRed(angle);
         } else {
             data = getHubZoneDataBlue(angle);
         }
-    
+
         SmartDashboard.putString("Zone", data.zone().toString());
         SmartDashboard.putNumber("Zone Left Angle", data.leftAngle());
         SmartDashboard.putNumber("Zone Right Angle", data.rightAngle());
@@ -362,90 +320,91 @@ public class LimeLightSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Zone Right Tag", data.rightTag());
         return data;
     }
-    
-    public ZoneData getHubZoneDataRed(double angle){
 
-        if(angle >= AimingConstants.RED_FAR_LEFT && angle < AimingConstants.RED_MED_LEFT){
+    public ZoneData getHubZoneDataRed(double angle) {
+
+        if (angle >= AimingConstants.RED_FAR_LEFT && angle < AimingConstants.RED_MED_LEFT) {
             return new ZoneData(HubZone.FAR_LEFT,
                     AimingConstants.RED_FAR_LEFT,
                     5,
                     AimingConstants.RED_MED_LEFT,
                     8);
-    
-        } else if (angle >= AimingConstants.RED_MED_LEFT && angle < AimingConstants.RED_NEAR_LEFT){
+
+        } else if (angle >= AimingConstants.RED_MED_LEFT && angle < AimingConstants.RED_NEAR_LEFT) {
             return new ZoneData(HubZone.MED_LEFT,
                     AimingConstants.RED_MED_LEFT,
                     8,
                     AimingConstants.RED_NEAR_LEFT,
                     9);
-    
-        } else if (angle >= AimingConstants.RED_NEAR_LEFT){
+
+        } else if (angle >= AimingConstants.RED_NEAR_LEFT) {
             return new ZoneData(HubZone.CENTER_LEFT,
                     AimingConstants.RED_NEAR_LEFT,
                     9,
                     360,
                     10);
-    
-        } else if (angle >= AimingConstants.RED_CENTER && angle < AimingConstants.RED_MED_RIGHT){
+
+        } else if (angle >= AimingConstants.RED_CENTER && angle < AimingConstants.RED_MED_RIGHT) {
             return new ZoneData(HubZone.CENTER_RIGHT,
                     AimingConstants.RED_CENTER,
                     10,
                     AimingConstants.RED_MED_RIGHT,
                     11);
-    
-        } else if (angle >= AimingConstants.RED_MED_RIGHT && angle < AimingConstants.RED_FAR_RIGHT){
+
+        } else if (angle >= AimingConstants.RED_MED_RIGHT && angle < AimingConstants.RED_FAR_RIGHT) {
             return new ZoneData(HubZone.FAR_RIGHT,
                     AimingConstants.RED_MED_RIGHT,
                     11,
                     AimingConstants.RED_FAR_RIGHT,
                     2);
-    
-        } else{
+
+        } else {
             return new ZoneData(HubZone.NONE, 0, 0, 0, 0);
         }
     }
+
     public ZoneData getHubZoneDataBlue(double angle) {
-        
+
         if (angle >= AimingConstants.BLUE_FAR_LEFT && angle < AimingConstants.BLUE_MED_LEFT) {
             return new ZoneData(HubZone.FAR_LEFT,
                     AimingConstants.BLUE_FAR_LEFT,
                     21,
                     AimingConstants.BLUE_MED_LEFT,
                     24);
-        
+
         } else if (angle >= AimingConstants.BLUE_MED_LEFT && angle < AimingConstants.BLUE_NEAR_LEFT) {
             return new ZoneData(HubZone.MED_LEFT,
                     AimingConstants.BLUE_MED_LEFT,
                     24,
                     AimingConstants.BLUE_NEAR_LEFT,
                     25);
-        
+
         } else if (angle >= AimingConstants.BLUE_NEAR_LEFT && angle < AimingConstants.BLUE_CENTER) {
             return new ZoneData(HubZone.CENTER_LEFT,
                     AimingConstants.BLUE_NEAR_LEFT,
                     25,
                     AimingConstants.BLUE_CENTER,
                     26);
-        
+
         } else if (angle >= AimingConstants.BLUE_CENTER && angle < AimingConstants.BLUE_MED_RIGHT) {
             return new ZoneData(HubZone.CENTER_RIGHT,
                     AimingConstants.BLUE_CENTER,
                     26,
                     AimingConstants.BLUE_MED_RIGHT,
                     27);
-        
+
         } else if (angle >= AimingConstants.BLUE_MED_RIGHT && angle < AimingConstants.BLUE_FAR_RIGHT) {
             return new ZoneData(HubZone.FAR_RIGHT,
                     AimingConstants.BLUE_MED_RIGHT,
                     27,
                     AimingConstants.BLUE_FAR_RIGHT,
                     18);
-        
+
         } else {
             return new ZoneData(HubZone.NONE, 0, 0, 0, 0);
         }
     }
-    
+
     @Override
     public void periodic() {
         update();
@@ -463,8 +422,6 @@ public class LimeLightSubsystem extends SubsystemBase {
                     NetworkTableValue.makeDouble(get2dDistance(m_currentLock)));
             NetworkTableInstance.getDefault().getTable(VisionConstants.kCameraName).putValue("PoseY",
                     NetworkTableValue.makeDouble(getPoseY()));
-            NetworkTableInstance.getDefault().getTable(VisionConstants.kCameraName).putValue("HubPosition",
-                    NetworkTableValue.makeDouble(getHubPosition()));
         }
         SmartDashboard.putNumber("HubAngle", getAngleToHub());
         // This method will be called once per scheduler run
