@@ -82,12 +82,12 @@ public class RobotContainer {
         m_robotDrive = new DriveSubsystem(m_Pigeon);
         m_robotIntake = new IntakeSubsystem();
         m_robotIntakeArm = new IntakeArmSubsystem();
-        m_robotTurret = new TurretSubsystem();
+        m_Limelight = new LimeLightSubsystem(m_robotDrive);
+        m_robotTurret = new TurretSubsystem(m_Limelight);
         m_robotClimber = new ClimberSubsystem();
         m_launcherSubsystem = new LauncherSubsystem(m_currentState);
         m_robotIndexer = new IndexerSubsystem();
         m_UpperIndexerSubsystem = new UpperIndexerSubsystem();
-        m_Limelight = new LimeLightSubsystem(m_robotDrive);
         m_LedSubsystem = new LEDSubsystem(m_currentState);
         configureButtonBindings();
 

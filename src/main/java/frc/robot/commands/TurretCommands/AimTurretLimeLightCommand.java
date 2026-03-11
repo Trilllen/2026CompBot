@@ -6,6 +6,8 @@ import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem.ZoneData;
 import frc.robot.subsystems.LimeLightSubsystem.HubZone;
+import frc.robot.utils.LimelightHelpers.RawFiducial;
+
 import java.util.ArrayList;
 
 public class AimTurretLimeLightCommand extends Command {
@@ -30,6 +32,31 @@ public class AimTurretLimeLightCommand extends Command {
         return activeTags.contains(tag1) && activeTags.contains(tag2);
     }
 
+    public double interpolate(ZoneData data){
+        double averageAngle = (data.leftAngle() + data.rightAngle()) / 2.0;
+        double distance = m_limelight.getDistanceToHub();
+        double currentAngle = m_limelight.getAngleToHub();
+        double angleInterp = (currentAngle - data.leftAngle()) / (data.rightAngle() - data.leftAngle());
+        return angleInterp;
+    }
+    public double getTagSpacing(ZoneData data){
+        int leftTag = data.leftTag();
+        int rightTag = data.rightTag();
+        RawFiducial leftTagData = m_limelight.getRawFiducialById(leftTag);
+        double leftTagTXNC = 0.0;
+        if (leftTagData != null){
+            leftTagTXNC = leftTagData.txnc;
+        }
+        RawFiducial rightTagData = m_limelight.getRawFiducialById(rightTag);
+        double rightTagTXNC = 0.0;
+        if (rightTagData != null){
+            rightTagTXNC = rightTagData.txnc;
+        }
+        double spacing = leftTagTXNC - rightTagTXNC;
+        return spacing;
+        
+    }
+
     @Override
     public void execute() {
         // Get the calculated motor speed from the subsystem logic
@@ -40,10 +67,9 @@ public class AimTurretLimeLightCommand extends Command {
         boolean bothTagsSeen = checkForTags(data.leftTag(), data.rightTag());
         if (bothTagsSeen) {
             // If both tags are seen, we can use the average of the left and right angles for better accuracy
-            double averageAngle = (data.leftAngle() + data.rightAngle()) / 2.0;
-            double distance = m_limelight.getDistanceToHub();
-            double currentAngle = m_limelight.getAngleToHub();
-            double angleInterp = (currentAngle - data.leftAngle()) / (data.rightAngle() - data.leftAngle());
+            double interpolation = interpolate(data);
+            double tagSpacing = getTagSpacing(data);
+            double offset = tagSpacing * interpolation;
 
             double speed = m_turret.calculateTurretCommand(0);
             // Apply the speed to the motor
