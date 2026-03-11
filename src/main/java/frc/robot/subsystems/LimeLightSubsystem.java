@@ -405,6 +405,17 @@ public class LimeLightSubsystem extends SubsystemBase {
         }
     }
 
+    public RawFiducial getRawFiducialById(int tagId) {
+        RawFiducial[] tags = LimelightHelpers.getRawFiducials(m_limelightCam);
+    
+        for (RawFiducial tag : tags) {
+            if (tag.id == tagId) {
+                return tag;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void periodic() {
         update();
