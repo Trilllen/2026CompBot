@@ -32,7 +32,7 @@ public class TurretSubsystem extends SubsystemBase {
         // Configure PID controller for continuous input (turret will be limited to 180
         // degrees)
         m_turretPID.enableContinuousInput(TurretConstants.kMinInput, TurretConstants.kMaxInput); 
-        LimeLightSubsystem m_limelight = limelight;                                                                                          
+        m_limelight = limelight;                                                                                          
         // Set the controller tolerance so we can check when we're "on target"
         m_turretPID.setTolerance(TurretConstants.kTargetToleranceDegrees);
     }

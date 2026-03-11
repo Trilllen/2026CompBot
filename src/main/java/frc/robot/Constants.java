@@ -213,7 +213,7 @@ public final class Constants {
     public static final double kP = 0.05;
     public static final double kI = 0;
     public static final double kD = 0.01;
-    public static final double kMinInput = -25;
+    public static final double kMinInput = -33;
     public static final double kMaxInput = 25;
     public static final double kTargetToleranceDegrees = 2;
     public static final double kLowClamp = -0.5;
