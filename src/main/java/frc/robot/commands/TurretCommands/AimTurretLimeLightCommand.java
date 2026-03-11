@@ -32,29 +32,30 @@ public class AimTurretLimeLightCommand extends Command {
         return activeTags.contains(tag1) && activeTags.contains(tag2);
     }
 
-    public double interpolate(ZoneData data){
+    public double interpolate(ZoneData data) {
         double averageAngle = (data.leftAngle() + data.rightAngle()) / 2.0;
         double distance = m_limelight.getDistanceToHub();
         double currentAngle = m_limelight.getAngleToHub();
         double angleInterp = (currentAngle - data.leftAngle()) / (data.rightAngle() - data.leftAngle());
         return angleInterp;
     }
-    public double getTagSpacing(ZoneData data){
+
+    public double getTagSpacing(ZoneData data) {
         int leftTag = data.leftTag();
         int rightTag = data.rightTag();
         RawFiducial leftTagData = m_limelight.getRawFiducialById(leftTag);
         double leftTagTXNC = 0.0;
-        if (leftTagData != null){
+        if (leftTagData != null) {
             leftTagTXNC = leftTagData.txnc;
         }
         RawFiducial rightTagData = m_limelight.getRawFiducialById(rightTag);
         double rightTagTXNC = 0.0;
-        if (rightTagData != null){
+        if (rightTagData != null) {
             rightTagTXNC = rightTagData.txnc;
         }
         double spacing = leftTagTXNC - rightTagTXNC;
         return spacing;
-        
+
     }
 
     @Override
@@ -66,7 +67,8 @@ public class AimTurretLimeLightCommand extends Command {
         // Check if both tags are being tracked
         boolean bothTagsSeen = checkForTags(data.leftTag(), data.rightTag());
         if (bothTagsSeen) {
-            // If both tags are seen, we can use the average of the left and right angles for better accuracy
+            // If both tags are seen, we can use the average of the left and right angles
+            // for better accuracy
             double interpolation = interpolate(data);
             double tagSpacing = getTagSpacing(data);
             double offset = tagSpacing * interpolation;
@@ -74,7 +76,10 @@ public class AimTurretLimeLightCommand extends Command {
             double speed = m_turret.calculateTurretCommand(data.leftTag(), offset);
             // Apply the speed to the motor
             m_turret.turnTurret(speed);
-        }
+        } else {
+            m_turret.turnTurret(0);
+        } // If we don't see both tags, don't move the turret (or you could choose to use
+          // one tag if you want)
     }
 
     @Override

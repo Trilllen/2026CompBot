@@ -407,7 +407,7 @@ public class LimeLightSubsystem extends SubsystemBase {
 
     public RawFiducial getRawFiducialById(int tagId) {
         RawFiducial[] tags = LimelightHelpers.getRawFiducials(m_limelightCam);
-    
+
         for (RawFiducial tag : tags) {
             if (tag.id == tagId) {
                 return tag;
@@ -435,6 +435,7 @@ public class LimeLightSubsystem extends SubsystemBase {
                     NetworkTableValue.makeDouble(getPoseY()));
         }
         SmartDashboard.putNumber("HubAngle", getAngleToHub());
+        SmartDashboard.putNumber("HubDistance", getDistanceToHub());
         // This method will be called once per scheduler run
 
         // tv int 1 if valid target exists. 0 if no valid targets exist

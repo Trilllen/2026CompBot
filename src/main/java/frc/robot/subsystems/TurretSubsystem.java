@@ -134,7 +134,7 @@ public class TurretSubsystem extends SubsystemBase {
             double tx = fiducial != null ? fiducial.txnc : 0.0;
             // PIDController.calculate(measurement, setpoint)
             // we want measurement=tx and setpoint=0.0 (center of crosshair)
-            double output = m_turretPID.calculate(-tx, offset);
+            double output = m_turretPID.calculate(tx, offset);
 
             // If we're within the configured tolerance, don't drive the motor (avoid small
             // oscillations)
