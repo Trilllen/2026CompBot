@@ -5,6 +5,7 @@
 // hello world 
 package frc.robot;
 
+import java.lang.annotation.Target;
 import java.net.PortUnreachableException;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -230,6 +231,7 @@ public final class Constants {
       Autonomous,
       TeleopInPosition,
       TeleopNotInPosition,
+      TargetAquired,
       Launching,
       Fueling,
       Climbing

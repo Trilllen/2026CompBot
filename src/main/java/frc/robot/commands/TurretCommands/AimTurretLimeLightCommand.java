@@ -2,6 +2,8 @@ package frc.robot.commands.TurretCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.TurretConstants;
+import frc.robot.Constants.States;
+import frc.robot.Constants.States.State;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem.ZoneData;
@@ -13,12 +15,14 @@ import java.util.ArrayList;
 public class AimTurretLimeLightCommand extends Command {
     private TurretSubsystem m_turret;
     private LimeLightSubsystem m_limelight;
-    private boolean isRed;
+    public boolean m_isRed;
+    public States m_currentState;
 
-    public AimTurretLimeLightCommand(TurretSubsystem turret, LimeLightSubsystem limelight) {
+    public AimTurretLimeLightCommand(TurretSubsystem turret, LimeLightSubsystem limelight, States state) {
         m_turret = turret;
         m_limelight = limelight;
-        isRed = m_limelight.isRedAlliance();
+        m_currentState = state;
+        m_isRed = m_limelight.isRedAlliance();
         addRequirements(m_turret);
     }
 
@@ -69,6 +73,7 @@ public class AimTurretLimeLightCommand extends Command {
         if (bothTagsSeen) {
             // If both tags are seen, we can use the average of the left and right angles
             // for better accuracy
+            m_currentState.setState(State.TargetAquired);
             double interpolation = interpolate(data);
             double tagSpacing = getTagSpacing(data);
             double offset = tagSpacing * interpolation;
@@ -78,6 +83,7 @@ public class AimTurretLimeLightCommand extends Command {
             m_turret.turnTurret(speed);
         } else {
             m_turret.turnTurret(0);
+            m_currentState.setState(State.Initial);
         } // If we don't see both tags, don't move the turret (or you could choose to use
           // one tag if you want)
     }
