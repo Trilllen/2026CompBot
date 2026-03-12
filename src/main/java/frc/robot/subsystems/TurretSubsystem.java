@@ -15,24 +15,24 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.TurretConstants; // Assuming you have a Constants file for PID and motor IDs
 import frc.robot.utils.LimelightHelpers; // Import the LimelightHelpers class
-//import frc.robot.subsystems.LimeLightSubsystem;
+import frc.robot.subsystems.LimeLightSubsystem;
+import frc.robot.utils.LimelightHelpers.RawFiducial;
 
 public class TurretSubsystem extends SubsystemBase {
     // Establish motor controller object for the turret and encoder
     private final SparkMax m_turretMotor = new SparkMax(TurretConstants.kTurretCanId, SparkMax.MotorType.kBrushless);
     // Spark Max relative encoder attached to the turret motor
     private final RelativeEncoder m_turretEncoder = m_turretMotor.getEncoder();
-
     // A PID controller for the turret's rotational movement
     private final PIDController m_turretPID = new PIDController(TurretConstants.kP, TurretConstants.kI,
             TurretConstants.kD);
+    private LimeLightSubsystem m_limelight; // Reference to the Limelight subsystem to get target data
 
-    public TurretSubsystem() {
+    public TurretSubsystem(LimeLightSubsystem limelight) {
         // Configure PID controller for continuous input (turret will be limited to 180
         // degrees)
-        m_turretPID.enableContinuousInput(TurretConstants.kMinInput, TurretConstants.kMaxInput); // Adjust limits based
-                                                                                                 // on your turret's
-                                                                                                 // design and wiring
+        m_turretPID.enableContinuousInput(TurretConstants.kMinInput, TurretConstants.kMaxInput); 
+        m_limelight = limelight;                                                                                          
         // Set the controller tolerance so we can check when we're "on target"
         m_turretPID.setTolerance(TurretConstants.kTargetToleranceDegrees);
     }
@@ -58,10 +58,10 @@ public class TurretSubsystem extends SubsystemBase {
         }
 
         double clampSpeed = MathUtil.clamp(speed,
-                TurretConstants.kLowClamp,
-                TurretConstants.kHighClamp);
-        m_turretMotor.set(clampSpeed);
-    }
+            TurretConstants.kLowClamp,
+            TurretConstants.kHighClamp);
+            m_turretMotor.set(clampSpeed);
+        }
 
     /**
      * Returns the turret angle in degrees, computed from the Spark Max relative
@@ -127,14 +127,14 @@ public class TurretSubsystem extends SubsystemBase {
 
     }
 
-    public double calculateTurretCommand(double setpoint) {
-        if (hasTarget()) {
+    public double calculateTurretCommand(int tagId, double offset) {
             // The 'tx' value is the error (difference from center, in degrees)
             // The PID controller calculates a motor output to make this error zero
-            double tx = getTx();
+            RawFiducial fiducial = m_limelight.getRawFiducialById(tagId);
+            double tx = fiducial != null ? fiducial.txnc : 0.0;
             // PIDController.calculate(measurement, setpoint)
             // we want measurement=tx and setpoint=0.0 (center of crosshair)
-            double output = m_turretPID.calculate(-tx, setpoint);
+            double output = m_turretPID.calculate(tx, offset);
 
             // If we're within the configured tolerance, don't drive the motor (avoid small
             // oscillations)
@@ -146,11 +146,7 @@ public class TurretSubsystem extends SubsystemBase {
             // output += Constants.Turret.kS;
 
             // Make sure output is within acceptable limits (e.g., -1.0 to 1.0)
-            return Math.copySign(Math.min(Math.abs(output), 1.0), output);
-        } else {
-            // No target, stop the motor or use a default behavior
-            return 0.0;
-        }
+            return MathUtil.clamp(output, -1.0, 1.0);
     }
 
     @Override
