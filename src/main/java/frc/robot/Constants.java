@@ -144,7 +144,7 @@ public final class Constants {
     // If true the DigitalInput.get() will return true when the switch is
     // pressed. If your switch wiring is inverted (returns false when pressed),
     // set this to false.
-    public static final boolean kRetractLimitPressedHigh = true;
+    public static final boolean kRetractLimitPressedHigh = false;
   }
 
   public static final class IndexerConstants {
@@ -172,7 +172,9 @@ public final class Constants {
     public static final double kIntakeArmMotorSpeed = 0.1;
     public static final double kIntakeArmReverseMotorSpeed = 0.1;
     public static final double kPitchGearboxRatio = 12.0; // 12:1 gear box (drive24 code used 125)
-    public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; // (drive24 code used                                                                                              // 360 for the                                                                                                // nominator)
+    public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; // (drive24 code used
+                                                                                                 // // 360 for the //
+                                                                                                 // nominator)
     public static final double kPitchP = 0.8;
     public static final double kPitchI = 0.0;
     public static final double kPitchD = 0.0;
@@ -198,9 +200,8 @@ public final class Constants {
     public static final double BLUE_MED_RIGHT = 240;
     public static final double BLUE_FAR_RIGHT = 270;
 
-    
   }
-  
+
   public static final class dPadConstants {
     public static final int kDPadUp = 0;
     public static final int kDPadRight = 90;
