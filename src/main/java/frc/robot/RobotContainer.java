@@ -142,7 +142,7 @@ public class RobotContainer {
                                                         m_robotDrive));
                 }
 
-                driverController.povUp().onTrue(
+                m_driverController.povUp().onTrue(
                     new SnapToAngle(
                         m_robotDrive,
                         () -> -m_driverController.getLeftY(),
@@ -150,7 +150,7 @@ public class RobotContainer {
                         () -> -m_driverController.getRightX(),
                         Rotation2d.fromDegrees(0)));
 
-                driverController.povRight().onTrue(
+                m_driverController.povRight().onTrue(
                     new SnapToAngle(
                         m_robotDrive,
                         () -> -m_driverController.getLeftY(),
@@ -158,7 +158,7 @@ public class RobotContainer {
                         () -> -m_driverController.getRightX(),
                         Rotation2d.fromDegrees(-90)));
                 
-                driverController.povDown().onTrue(
+                m_driverController.povDown().onTrue(
                     new SnapToAngle(
                         m_robotDrive,
                         () -> -m_driverController.getLeftY(),
@@ -166,7 +166,7 @@ public class RobotContainer {
                         () -> -m_driverController.getRightX(),
                         Rotation2d.fromDegrees(180)));
                 
-                driverController.povLeft().onTrue(
+                m_driverController.povLeft().onTrue(
                     new SnapToAngle(
                         m_robotDrive,
                         () -> -m_driverController.getLeftY(),
