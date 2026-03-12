@@ -125,7 +125,7 @@ public class RobotContainer {
                 /*
                  * DRIVER CONTROLS
                  */
-
+                
                 // Right bumper -> lock wheels in X pattern
                 m_driverController.rightBumper()
                                 .whileTrue(new RunCommand(
@@ -139,6 +139,38 @@ public class RobotContainer {
                                                         () -> m_robotDrive.zeroHeading(),
                                                         m_robotDrive));
                 }
+
+                driverController.povUp().onTrue(
+                    new SnapToAngle(
+                        m_robotDrive,
+                        () -> -m_driverController.getLeftY(),
+                        () -> -m_driverController.getLeftX(),
+                        () -> -m_driverController.getRightX(),
+                        Rotation2d.fromDegrees(0)));
+
+                driverController.povRight().onTrue(
+                    new SnapToAngle(
+                        m_robotDrive,
+                        () -> -m_driverController.getLeftY(),
+                        () -> -m_driverController.getLeftX(),
+                        () -> -m_driverController.getRightX(),
+                        Rotation2d.fromDegrees(-90)));
+                
+                driverController.povDown().onTrue(
+                    new SnapToAngle(
+                        m_robotDrive,
+                        () -> -m_driverController.getLeftY(),
+                        () -> -m_driverController.getLeftX(),
+                        () -> -m_driverController.getRightX(),
+                        Rotation2d.fromDegrees(180)));
+                
+                driverController.povLeft().onTrue(
+                    new SnapToAngle(
+                        m_robotDrive,
+                        () -> -m_driverController.getLeftY(),
+                        () -> -m_driverController.getLeftX(),
+                        () -> -m_driverController.getRightX(),
+                        Rotation2d.fromDegrees(90)));
 
                 /*
                  * GUNNER CONTROLS
