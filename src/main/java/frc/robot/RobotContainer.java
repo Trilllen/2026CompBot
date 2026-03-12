@@ -11,6 +11,7 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.dPadConstants;
 import frc.robot.commands.TurretCommands.AimTurretLimeLightCommand;
 import frc.robot.commands.TurretCommands.AimTurretManualCommand;
+import frc.robot.commands.SnapToAngle;
 import frc.robot.Constants.States;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.ClimberSubsystem;
@@ -23,6 +24,7 @@ import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -125,7 +127,7 @@ public class RobotContainer {
                 /*
                  * DRIVER CONTROLS
                  */
-
+                
                 // Right bumper -> lock wheels in X pattern
                 m_driverController.rightBumper()
                                 .whileTrue(new RunCommand(
@@ -139,6 +141,38 @@ public class RobotContainer {
                                                         () -> m_robotDrive.zeroHeading(),
                                                         m_robotDrive));
                 }
+
+                m_driverController.povUp().onTrue(
+                    new SnapToAngle(
+                        m_robotDrive,
+                        () -> -m_driverController.getLeftY(),
+                        () -> -m_driverController.getLeftX(),
+                        () -> -m_driverController.getRightX(),
+                        Rotation2d.fromDegrees(0)));
+
+                m_driverController.povRight().onTrue(
+                    new SnapToAngle(
+                        m_robotDrive,
+                        () -> -m_driverController.getLeftY(),
+                        () -> -m_driverController.getLeftX(),
+                        () -> -m_driverController.getRightX(),
+                        Rotation2d.fromDegrees(-90)));
+                
+                m_driverController.povDown().onTrue(
+                    new SnapToAngle(
+                        m_robotDrive,
+                        () -> -m_driverController.getLeftY(),
+                        () -> -m_driverController.getLeftX(),
+                        () -> -m_driverController.getRightX(),
+                        Rotation2d.fromDegrees(180)));
+                
+                m_driverController.povLeft().onTrue(
+                    new SnapToAngle(
+                        m_robotDrive,
+                        () -> -m_driverController.getLeftY(),
+                        () -> -m_driverController.getLeftX(),
+                        () -> -m_driverController.getRightX(),
+                        Rotation2d.fromDegrees(90)));
 
                 /*
                  * GUNNER CONTROLS
