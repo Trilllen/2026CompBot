@@ -180,6 +180,9 @@ public final class Constants {
     public static final double kPitchI = 0.0;
     public static final double kPitchD = 0.0;
     // public static final double kPitchFF = 0.0;
+    // Digital input channel for the retract (bottom) limit switch
+    // Set to the appropriate DIO channel on your RoboRIO
+    public static final int kIntakeArmRaisedLimitChannel = 8;
   }
 
   public static final class LedConstants {
