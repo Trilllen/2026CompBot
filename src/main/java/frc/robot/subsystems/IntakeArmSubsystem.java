@@ -108,7 +108,6 @@ public class IntakeArmSubsystem extends SubsystemBase {
         stopArm();
       } else {
         output = pid.calculate(intakeArmEncoder.getPosition(), STOW_ROT);
-        output = Math.max(-MAX_OUTPUT, Math.min(MAX_OUTPUT, output));
         intakeArmMotor.set(output);
       }
     } else if (state == IntakeStates.LOWER) {
@@ -116,7 +115,6 @@ public class IntakeArmSubsystem extends SubsystemBase {
         stopArm();
       } else {
         output = pid.calculate(intakeArmEncoder.getPosition(), DEPLOY_ROT);
-        output = Math.max(-MAX_OUTPUT, Math.min(MAX_OUTPUT, output));
         intakeArmMotor.set(output);
       }
     } else {
