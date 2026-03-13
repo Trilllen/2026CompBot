@@ -215,29 +215,33 @@ public class RobotContainer {
                                 m_robotClimber));
 
                 // A button -> toggle intake arm stow/deploy
-                m_gunnerController.a()
-                                .onTrue(new InstantCommand(() -> m_robotIntakeArm.toggleStowDeploy(),
-                                                m_robotIntakeArm));
-
                 // MANUAL arm
-                m_gunnerController.x()
-                                .whileTrue(
-                                                new StartEndCommand(
-                                                                () -> m_robotIntakeArm.raiseArm(),
-                                                                () -> m_robotIntakeArm.stopArm(),
-                                                                m_robotIntakeArm));
-                m_gunnerController.b()
-                                .whileTrue(
-                                                new StartEndCommand(
-                                                                () -> m_robotIntakeArm.lowerArm(),
-                                                                () -> m_robotIntakeArm.stopArm(),
-                                                                m_robotIntakeArm));
+                m_gunnerController.x().onTrue(
+                                new InstantCommand(
+                                        () -> m_robotIntakeArm.stow(),
+                                        m_robotIntakeArm));
+                
+                m_gunnerController.x().onFalse(
+                        new InstantCommand(
+                                () -> m_robotIntakeArm.stopArm(),
+                                m_robotIntakeArm));
+                
+                m_gunnerController.b().onTrue(
+                                new InstantCommand(
+                                        () -> m_robotIntakeArm.deploy(),
+                                        m_robotIntakeArm));
+                
+                m_gunnerController.b().onFalse(
+                        new InstantCommand(
+                                () -> m_robotIntakeArm.stopArm(),
+                                m_robotIntakeArm));
+                
                 m_gunnerController.y()
                                 .whileTrue(
                                                 new AimTurretLimeLightCommand(m_robotTurret, m_Limelight,
                                                                 m_currentState));
                 // D-Pad Left -> reverse indexer (while held)
-                m_gunnerController.pov(dPadConstants.kDPadLeft)
+                m_gunnerController.povLeft()
                                 .whileTrue(
                                                 new StartEndCommand(
                                                                 () -> m_robotIndexer.reverseIndexer(),
@@ -254,7 +258,7 @@ public class RobotContainer {
 
                 // Left trigger -> start/stop intake rollers
                 m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
-                                .toggleOnTrue(
+                                .whileTrue(
                                                 new StartEndCommand(
                                                                 () -> m_robotIntake.startIntakeRollers(),
                                                                 () -> m_robotIntake.stopIntakeRollers(),
