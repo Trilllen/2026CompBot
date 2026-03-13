@@ -6,37 +6,31 @@ package frc.robot;
 
 // imports for Rev Robotics MaxSwerve
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.AddressableLED;
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.PS4Controller.Button;
-import frc.robot.Constants.AutoConstants;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.LauncherMotorConstants;
+import frc.robot.Constants.dPadConstants;
+import frc.robot.commands.TurretCommands.AimTurretLimeLightCommand;
+import frc.robot.commands.TurretCommands.AimTurretManualCommand;
+import frc.robot.commands.SnapToAngle;
+import frc.robot.Constants.States;
 import frc.robot.Constants.OIConstants;
-import frc.robot.commands.LauncherCommands.Launch;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.IndexerSubsystem;
+import frc.robot.subsystems.IntakeArmSubsystem;
+import frc.robot.subsystems.UpperIndexerSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
+import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-
-import java.util.List;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 // other imports
 import com.ctre.phoenix6.CANBus;
@@ -53,235 +47,361 @@ import com.ctre.phoenix6.hardware.Pigeon2;
  */
 public class RobotContainer {
 
-  public CANBus m_CanBus = new CANBus();
-  public Pigeon2 m_Pigeon = new Pigeon2(Constants.SensorConstants.kPigeonCanId, m_CanBus);
+        public CANBus m_CanBus = new CANBus();
+        public Pigeon2 m_Pigeon;
+        public States m_currentState;
 
-  // The robot's subsystems and commands are defined here...
+        // The robot's subsystems and commands are defined here...
 
-  // MOVED TO INSIDE public RobotContainer(), because need to send pigeon as
-  // parameter.
-  private final DriveSubsystem m_robotDrive;
-  private final IntakeSubsystem m_robotIntake;
-  private final TurretSubsystem m_robotTurret;
-  private final ClimberSubsystem m_robotClimber;
+        // MOVED TO INSIDE public RobotContainer(), because need to send pigeon as
+        // parameter.
+        private final DriveSubsystem m_robotDrive;
+        private final IntakeSubsystem m_robotIntake;
+        private final IntakeArmSubsystem m_robotIntakeArm;
+        private final TurretSubsystem m_robotTurret;
+        private final ClimberSubsystem m_robotClimber;
+        private final LimeLightSubsystem m_Limelight;
+        private final LEDSubsystem m_LedSubsystem;
+        private final IndexerSubsystem m_robotIndexer;
+        private final LauncherSubsystem m_launcherSubsystem;
+        private final UpperIndexerSubsystem m_UpperIndexerSubsystem;
 
-  // The driver's controller
-  XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-  XboxController m_gunnerController = new XboxController(OIConstants.kGunnerControllerPort);
+        // The driver's controller
+        private final CommandXboxController m_driverController = new CommandXboxController(
+                        OIConstants.kDriverControllerPort);
+        private final CommandXboxController m_gunnerController = new CommandXboxController(
+                        OIConstants.kGunnerControllerPort);
 
-  private final LauncherSubsystem m_launcherSubsystem = new LauncherSubsystem(m_gunnerController, null);
+        /**
+         * The container for the robot. Contains subsystems, OI devices, and commands.
+         */
+        public RobotContainer() {
+                // Initialize subsystems
+                m_Pigeon = new Pigeon2(Constants.SensorConstants.kPigeonCanId, m_CanBus);
+                m_currentState = new States();
+                DriverStation.silenceJoystickConnectionWarning(true);
 
-  /**
-   * The container for the robot. Contains subsystems, OI devices, and commands.
-   */
-  public RobotContainer() {
+                m_robotDrive = new DriveSubsystem(m_Pigeon);
+                m_robotIntake = new IntakeSubsystem();
+                m_robotIntakeArm = new IntakeArmSubsystem();
+                m_Limelight = new LimeLightSubsystem(m_robotDrive);
+                m_robotTurret = new TurretSubsystem(m_Limelight);
+                m_robotClimber = new ClimberSubsystem();
+                m_launcherSubsystem = new LauncherSubsystem(m_currentState);
+                m_robotIndexer = new IndexerSubsystem();
+                m_UpperIndexerSubsystem = new UpperIndexerSubsystem();
+                m_LedSubsystem = new LEDSubsystem(m_currentState);
+                configureButtonBindings();
 
-    if (!Constants.kTestMode) {
-      m_robotDrive = new DriveSubsystem(m_Pigeon);
-      m_robotIntake = new IntakeSubsystem();
-      m_robotTurret = new TurretSubsystem();
-      m_robotClimber = new ClimberSubsystem();
-    } else {
-      m_robotDrive = null;
-      m_robotIntake = null;
-      m_robotTurret = null;
-      m_robotClimber = null;
-    }
+                // Configure default commands
+                if (m_robotDrive != null) {
+                        m_robotDrive.setDefaultCommand(
+                                        // The left stick controls translation of the robot.
+                                        // Turning is controlled by the X axis of the right stick
+                                        new RunCommand(
+                                                        () -> {
+                                                                double slow = m_driverController.leftBumper()
+                                                                                .getAsBoolean() ? 0.2 : 1.0;
 
-    // Configure the button bindings
-    if (!Constants.kTestMode) {
-      configureButtonBindings();
-    } else {
-      Trigger launchTrigger = new Trigger(this::launchRequested);
-      launchTrigger.whileTrue(new InstantCommand(
-          () -> m_launcherSubsystem.startLauncher(LauncherMotorConstants.kLauncherMotorSpeed), m_launcherSubsystem));
-      launchTrigger.onFalse(new InstantCommand(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem));
-    }
+                                                                double xSpeed = -MathUtil.applyDeadband(
+                                                                                m_driverController.getLeftY(),
+                                                                                OIConstants.kDriveDeadband) * slow;
+                                                                double ySpeed = -MathUtil.applyDeadband(
+                                                                                m_driverController.getLeftX(),
+                                                                                OIConstants.kDriveDeadband) * slow;
+                                                                double rot = -MathUtil.applyDeadband(
+                                                                                m_driverController.getRightX(),
+                                                                                OIConstants.kDriveDeadband) * slow;
 
-    // Configure default commands
-    if (m_robotDrive != null) {
-      m_robotDrive.setDefaultCommand(
-          // The left stick controls translation of the robot.
-          // Turning is controlled by the X axis of the right stick.
-          new RunCommand(
-              () -> m_robotDrive.drive(
-                  -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-                  -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
-                  -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
-                  true),
-              m_robotDrive));
-    }
-  }
+                                                                m_robotDrive.drive(xSpeed, ySpeed, rot, true);
+                                                        },
+                                                        m_robotDrive));
+                }
+        }
 
-  /**
-   * Use this method to define your button->command mappings. Buttons can be
-   * created by
-   * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its
-   * subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling
-   * passing it to a
-   * {@link JoystickButton}.
-   */
-  private void configureButtonBindings() {
-    new JoystickButton(m_driverController, Button.kR1.value)
-        .whileTrue(new RunCommand(
-            () -> m_robotDrive.setX(),
-            m_robotDrive));
+        /**
+         * Use this method to define your button->command mappings using
+         * CommandXboxController's built-in Trigger methods.
+         */
+        private void configureButtonBindings() {
+                /*
+                 * DRIVER CONTROLS
+                 */
 
-    new JoystickButton(m_driverController, XboxController.Button.kStart.value)
-        .onTrue(new InstantCommand(
-            () -> m_robotDrive.zeroHeading(),
-            m_robotDrive));
+                // Right bumper -> lock wheels in X pattern
+                m_driverController.rightBumper()
+                                .whileTrue(new RunCommand(
+                                                () -> m_robotDrive.setX(),
+                                                m_robotDrive));
 
-    // Driver controls
-    new JoystickButton(m_gunnerController, XboxController.Button.kA.value)
-        .onTrue(new RunCommand(() -> m_robotIntake.toggleIntakeExtentions(), m_robotIntake));
-    new JoystickButton(m_gunnerController, XboxController.Button.kB.value)
-        .whileTrue(new RunCommand(() -> m_robotTurret.setAllianceZoneLock(), m_robotTurret));
-    new JoystickButton(m_gunnerController, XboxController.Button.kX.value)
-        .onTrue(new RunCommand(() -> m_robotClimber.toggleHookLatch(), m_robotClimber));
-    new JoystickButton(m_gunnerController, XboxController.Button.kY.value)
-        .whileTrue(new RunCommand(() -> m_robotTurret.lockOntoHub(), m_robotTurret));
-    new JoystickButton(m_gunnerController, XboxController.Button.kLeftBumper.value)
-        .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(), m_robotIntake));
-    // new JoystickButton(m_gunnerController,
-    // XboxController.Button.kRightStick.value)
-    // .whileTrue(new RunCommand(() -> m_robotTurret.aimLauncher(), m_robotTurret));
-    // new JoystickButton(m_gunnerController, XboxController.Button.kDPadUp.value)
-    // .whileTrue(new RunCommand(() -> m_robotClimber.extendClimber(),
-    // m_robotClimber));
-    // new JoystickButton(m_gunnerController, XboxController.Button.kDPadDown.value)
-    // .whileTrue(new RunCommand(() -> m_robotClimber.retractClimber(),
-    // m_robotClimber));
-    new JoystickButton(m_gunnerController, XboxController.Button.kStart.value)
-        .onTrue(new RunCommand(() -> m_robotTurret.startStopLauncherMotors(), m_robotTurret));
-    // The right trigger is defined and controlls the launcher motors
+                if (Constants.kTestMode) {
+                        // Start button -> zero heading
+                        m_driverController.start()
+                                        .onTrue(new InstantCommand(
+                                                        () -> m_robotDrive.zeroHeading(),
+                                                        m_robotDrive));
+                }
 
-    Trigger extendClimberTrigger = new Trigger(this::extendClimberRequested);
-    extendClimberTrigger.whileTrue(new RunCommand(() -> m_robotClimber.extendClimber(0.5), m_robotClimber));
-    extendClimberTrigger.onFalse(new RunCommand(() -> m_robotClimber.stopClimber(), m_robotClimber));
+                m_driverController.povUp().onTrue(
+                                new SnapToAngle(
+                                                m_robotDrive,
+                                                () -> -m_driverController.getLeftY(),
+                                                () -> -m_driverController.getLeftX(),
+                                                () -> -m_driverController.getRightX(),
+                                                Rotation2d.fromDegrees(0)));
 
-    Trigger retractClimberTrigger = new Trigger(this::retractClimberRequested);
-    retractClimberTrigger.whileTrue(new RunCommand(() -> m_robotClimber.retractClimber(0.5), m_robotClimber));
-    retractClimberTrigger.onFalse(new RunCommand(() -> m_robotClimber.stopClimber(), m_robotClimber));
+                m_driverController.povRight().onTrue(
+                                new SnapToAngle(
+                                                m_robotDrive,
+                                                () -> -m_driverController.getLeftY(),
+                                                () -> -m_driverController.getLeftX(),
+                                                () -> -m_driverController.getRightX(),
+                                                Rotation2d.fromDegrees(-90)));
 
-    Trigger launchTrigger = new Trigger(this::launchRequested);
-    launchTrigger.whileTrue(new InstantCommand(
-        () -> m_launcherSubsystem.startLauncher(LauncherMotorConstants.kLauncherMotorSpeed), m_launcherSubsystem));
-    launchTrigger.onFalse(new InstantCommand(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem));
+                m_driverController.povDown().onTrue(
+                                new SnapToAngle(
+                                                m_robotDrive,
+                                                () -> -m_driverController.getLeftY(),
+                                                () -> -m_driverController.getLeftX(),
+                                                () -> -m_driverController.getRightX(),
+                                                Rotation2d.fromDegrees(180)));
 
-    Trigger intakeTrigger = new Trigger(this::intakeRequested);
-    intakeTrigger.onTrue(new InstantCommand(() -> m_robotIntake.startIntakeRollers(), m_robotIntake));
-    intakeTrigger.onFalse(new InstantCommand(() -> m_robotIntake.stopIntakeRollers(), m_robotIntake));
+                m_driverController.povLeft().onTrue(
+                                new SnapToAngle(
+                                                m_robotDrive,
+                                                () -> -m_driverController.getLeftY(),
+                                                () -> -m_driverController.getLeftX(),
+                                                () -> -m_driverController.getRightX(),
+                                                Rotation2d.fromDegrees(90)));
 
-    // TODO: Driver controls
-    // new JoystickButton(m_driverController,
-    // XboxController.Button.kLeftTrigger.value).whileTrue(new RunCommand(() ->
-    // m_robotDrive.brakeSlowDown(), m_robotDrive));
-  }
+                /*
+                 * GUNNER CONTROLS
+                 */
 
-  /*
-   * Gunner
-   * A -> Extend/Retract Intake (toggle) DONE
-   * B -> Track outpost with Limelight to shoot into alliance zone (hold) DONE
-   * X -> Latch Hook on climber (toggle) DONE
-   * Y -> Lock onto hub (hold)
-   * LB -> Reverse Intake Rollers (hold)
-   * RB ->
-   * LeftJoystick ->
-   * LeftJoystickClick ->
-   * RightJoystick -> Aim launcher
-   * RightJoystickClick ->
-   * DPad Up -> Climber extend (hold)
-   * DPad Down -> Climber retract (hold)
-   * DPad Left ->
-   * DPad Right ->
-   * LeftTrigger -> Start/stop Intake Rollers (toggle) DONE
-   * RightTrigger -> Launch fuel (hold) DONE
-   * StartButton -> Start/Stop launcher motors (toggle) DONE
-   * 
-   */
-  /*
-   * Driver
-   * A ->
-   * B ->
-   * X ->
-   * Y -> a
-   * LB ->
-   * RB ->
-   * LeftJoystick -> Motion of robot
-   * RightJoystick -> Rotation of robot
-   * DPad Up ->
-   * DPad Down ->
-   * DPad Left ->
-   * DPad Right ->
-   * LeftTrigger -> Brake/Slow down (go slower when held more)? Dont really need
-   * but maybe
-   * RightTrigger ->
-   * 
-   */
-  // Check if dpad right is pressed on the gunner controller
-  public boolean launchRequested() {
-    System.out.println("Right Trigger Axis: " + m_gunnerController.getRightTriggerAxis());
+                // Right bumper (analog) -> run launcher (hold)
+                m_gunnerController.rightBumper()
+                                .whileTrue(new StartEndCommand(
+                                                () -> m_launcherSubsystem.startLauncher(),
+                                                () -> m_launcherSubsystem.stopLauncher(),
+                                                m_launcherSubsystem));
 
-    return m_gunnerController.getRightTriggerAxis() > 0.9;
-  }
+                // Right bumper -> run indexer (hold)
+                // Upper indexer is set to follow lower indexer on the Rev Hardware Client
+                m_gunnerController.rightTrigger(OIConstants.kRightTriggerThreshold)
+                                .whileTrue(new StartEndCommand(
+                                                () -> m_robotIndexer.startIndexerMotor(),
+                                                () -> m_robotIndexer.stopIndexerMotor(),
+                                                m_robotIndexer));
 
-  public boolean intakeRequested() {
-    return m_gunnerController.getLeftTriggerAxis() > 0.9;
-  }
+                // D-Pad Up -> extend climber
+                m_gunnerController.povUp().onTrue(
+                        new InstantCommand(
+                                () -> m_robotClimber.startExtending(),
+                                m_robotClimber));
+                
+                m_gunnerController.povUp().onFalse(
+                        new InstantCommand(
+                                () -> m_robotClimber.stopClimber(),
+                                m_robotClimber));
+                // D-Pad Down -> retract climber
+                m_gunnerController.povDown().onTrue(
+                        new InstantCommand(
+                                () -> m_robotClimber.startRetracting(),
+                                m_robotClimber));
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  public Command getAutonomousCommand() {
-    // Create config for trajectory
-    TrajectoryConfig config = new TrajectoryConfig(
-        AutoConstants.kMaxSpeedMetersPerSecond,
-        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-        // Add kinematics to ensure max speed is actually obeyed
-        .setKinematics(DriveConstants.kDriveKinematics);
+                m_gunnerController.povDown().onFalse(
+                        new InstantCommand(
+                                () -> m_robotClimber.stopClimber(),
+                                m_robotClimber));
 
-    // An example trajectory to follow. All units in meters.
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
-        config);
+                // A button -> toggle intake arm stow/deploy
+                // MANUAL arm
+                m_gunnerController.x().onTrue(
+                                new InstantCommand(
+                                        () -> m_robotIntakeArm.stow(),
+                                        m_robotIntakeArm));
+                
+                m_gunnerController.x().onFalse(
+                        new InstantCommand(
+                                () -> m_robotIntakeArm.stopArm(),
+                                m_robotIntakeArm));
+                
+                m_gunnerController.b().onTrue(
+                                new InstantCommand(
+                                        () -> m_robotIntakeArm.deploy(),
+                                        m_robotIntakeArm));
+                
+                m_gunnerController.b().onFalse(
+                        new InstantCommand(
+                                () -> m_robotIntakeArm.stopArm(),
+                                m_robotIntakeArm));
+                
+                m_gunnerController.y()
+                                .whileTrue(
+                                                new AimTurretLimeLightCommand(m_robotTurret, m_Limelight,
+                                                                m_currentState));
+                // D-Pad Left -> reverse indexer (while held)
+                m_gunnerController.povLeft()
+                                .whileTrue(
+                                                new StartEndCommand(
+                                                                () -> m_robotIndexer.reverseIndexer(),
+                                                                () -> m_robotIndexer.stopIndexerMotor(),
+                                                                m_robotIndexer));
 
-    var thetaController = new ProfiledPIDController(
-        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+                // D-Pad Right -> reverse launcher (while held)
+                m_gunnerController.pov(dPadConstants.kDPadRight)
+                                .whileTrue(
+                                                new StartEndCommand(
+                                                                () -> m_launcherSubsystem.reverseLauncher(),
+                                                                () -> m_launcherSubsystem.stopLauncher(),
+                                                                m_launcherSubsystem));
 
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        exampleTrajectory,
-        m_robotDrive::getPose, // Functional interface to feed supplier
-        DriveConstants.kDriveKinematics,
+                // Left trigger -> start/stop intake rollers
+                m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
+                                .whileTrue(
+                                                new StartEndCommand(
+                                                                () -> m_robotIntake.startIntakeRollers(),
+                                                                () -> m_robotIntake.stopIntakeRollers(),
+                                                                m_robotIntake));
+                // changed to toggle, see code above
+                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
+                // .onTrue(new InstantCommand(() -> m_robotIntake.startIntakeRollers(),
+                // m_robotIntake));
+                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
+                // .onFalse(new InstantCommand(() -> m_robotIntake.stopIntakeRollers(),
+                // m_robotIntake));
 
-        // Position controllers
-        new PIDController(AutoConstants.kPXController, 0, 0),
-        new PIDController(AutoConstants.kPYController, 0, 0),
-        thetaController,
-        m_robotDrive::setModuleStates,
-        m_robotDrive);
+                // Left bumper -> reverse intake rollers (while held)
+                m_gunnerController.leftBumper()
+                                .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(), m_robotIntake));
 
-    // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+                //
+                m_robotTurret.setDefaultCommand(new AimTurretManualCommand(
+                                m_robotTurret,
+                                () -> MathUtil.applyDeadband(m_gunnerController.getLeftX(),
+                                                OIConstants.kGunnerDeadBand)));
+        }
 
-    // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
-  }
+        /*
+         * Gunner
+         * A -> Extend/Retract Intake (toggle)
+         * B -> Arm down (hold)
+         * X -> Arm manual up (hold)
+         * Y -> Lock onto hub (hold) TO DO
+         * LB -> Reverse Intake Rollers (hold)
+         * RB -> Launcher on and off (hold)
+         * upper and lower indexer motor, instead of just while held
+         * LeftJoystick ->
+         * LeftJoystickClick ->
+         * RightJoystick -> Aim launcher
+         * RightJoystickClick ->
+         * DPad Up -> Climber extend (hold)
+         * DPad Down -> Climber retract (hold)
+         * DPad Left -> Reverse Indexer (hold)
+         * DPad Right -> Reverse launcher (hold)
+         * LeftTrigger -> Start/stop Intake Rollers (toggle)
+         * RightTrigger -> Toggle indexers on and off (TOGGLE)
+         * launcher motors, instead of just while held
+         * StartButton -> Start/Stop launcher motors (toggle)
+         * 
+         */
+        /*
+         * Driver
+         * A ->
+         * B ->
+         * X ->
+         * Y -> a
+         * LB ->
+         * RB ->
+         * LeftJoystick -> Motion of robot
+         * RightJoystick -> Rotation of robot
+         * DPad Up ->
+         * DPad Down ->
+         * DPad Left ->
+         * DPad Right ->
+         * LeftTrigger -> Brake/Slow down (go slower when held more)? Dont really need
+         * but maybe
+         * RightTrigger ->
+         * 
+         */
 
-  public boolean extendClimberRequested() {
-    return m_gunnerController.getPOV() == 0;
-  }
+        /**
+         * Use this to pass the autonomous command to the main {@link Robot} class.
+         *
+         * @return the command to run in autonomous
+         */
+        public Command getAutonomousCommand() {
 
-  public boolean retractClimberRequested() {
-    return m_gunnerController.getPOV() == 180;
-  }
+                // /**
+                // * Use this to pass the autonomous command to the main {@link Robot} class.
+                // *
+                // * @return the command to run in autonomous
+                // */
+                // return autoChooser.getSelected();
+
+                /*
+                 * Autonomouse to start launcher, move forward 2 feet, then run upper indexer,
+                 * then run indexer, wait 4 seconds, then stop motors.
+                 */
+                Command m_autonomousCommand;
+                m_autonomousCommand =
+                                // new PathPlannerAuto("Dead Ahead")
+                                // .andThen(() -> m_ElevatorSubsystem.goToElevatorL2(), m_ElevatorSubsystem)
+                                new InstantCommand(() -> m_launcherSubsystem.startLauncher(), m_launcherSubsystem)
+                                                .andThen(Commands.waitSeconds(2))
+                                                // .andthen(m_robotDrive.)
+                                                // .andThen(() -> m_UpperIndexerSubsystem.startUpperIndexerMotor(),
+                                                // m_UpperIndexerSubsystem)
+                                                .andThen(() -> m_robotIndexer.startIndexerMotor(), m_robotIndexer)
+                                                .andThen(Commands.waitSeconds(5))
+                                                .andThen(() -> m_robotIndexer.stopIndexerMotor(), m_robotIndexer)
+                                                // .andThen(() -> m_UpperIndexerSubsystem.stopUpperIndexerMotor(),
+                                                // m_UpperIndexerSubsystem)
+                                                .andThen(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem);
+                return m_autonomousCommand;
+
+                // this is code from 2025. is it needed/useful?
+                // // Create config for trajectory
+                // TrajectoryConfig config = new TrajectoryConfig(
+                // AutoConstants.kMaxSpeedMetersPerSecond,
+                // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+                // // Add kinematics to ensure max speed is actually obeyed
+                // .setKinematics(DriveConstants.kDriveKinematics);
+
+                // // An example trajectory to follow. All units in meters.
+                // Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
+                // // Start at the origin facing the +X direction
+                // new Pose2d(0, 0, new Rotation2d(0)),
+                // // Pass through these two interior waypoints, making an 's' curve path
+                // List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
+                // // End 3 meters straight ahead of where we started, facing forward
+                // new Pose2d(3, 0, new Rotation2d(0)),
+                // config);
+
+                // var thetaController = new ProfiledPIDController(
+                // AutoConstants.kPThetaController, 0, 0,
+                // AutoConstants.kThetaControllerConstraints);
+                // thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+                // SwerveControllerCommand swerveControllerCommand = new
+                // SwerveControllerCommand(
+                // exampleTrajectory,
+                // m_robotDrive::getPose, // Functional interface to feed supplier
+                // DriveConstants.kDriveKinematics,
+
+                // // Position controllers
+                // new PIDController(AutoConstants.kPXController, 0, 0),
+                // new PIDController(AutoConstants.kPYController, 0, 0),
+                // thetaController,
+                // m_robotDrive::setModuleStates,
+                // m_robotDrive);
+
+                // // Reset odometry to the starting pose of the trajectory.
+                // m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+
+                // // Run path following command, then stop at the end.
+                // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0,
+                // false));
+        }
+
 }

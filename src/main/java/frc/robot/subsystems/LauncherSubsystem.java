@@ -5,29 +5,35 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import frc.robot.Constants.LauncherMotorConstants;
+import frc.robot.Constants.LauncherConstants;
 import frc.robot.Constants.States;
+import frc.robot.Constants.States.State;
+
+
 
 public class LauncherSubsystem extends SubsystemBase {
   /** Creates a new LauncherSubsystem. */
 
   // Declare the TalonFX motor controller object with a specific CAN ID
-  private final TalonFX m_krakenMotorMaster = new TalonFX(LauncherMotorConstants.kLauncherMotorMaster);
-  private final TalonFX m_krakenMotorFollower = new TalonFX(LauncherMotorConstants.kLauncherMotorFollower);
-  private boolean m_TriggerPulled = false;
+  private final TalonFX m_krakenMotorMaster = new TalonFX(LauncherConstants.kLauncherMotorMaster); // Replace 10 with your motor's CAN ID
+  private final TalonFX m_krakenMotorFollower = new  TalonFX (LauncherConstants.kLauncherMotorFollower);
+  public States m_currentState;
+  private double throttle;
+  private boolean launcherIsOn = false;
 
-  public LauncherSubsystem(XboxController controller, States botstate) {
+  public LauncherSubsystem(States state) {
 
-    States m_botState = botstate;
-    XboxController m_controller = controller;
+    m_currentState = state;
     m_krakenMotorFollower.setControl(new Follower(m_krakenMotorMaster.getDeviceID(), MotorAlignmentValue.Opposed));
+    throttle = LauncherConstants.kLauncherMotorSpeed;
+    SmartDashboard.putNumber("[THROTTLE]", throttle);
 
     // we may not need to use the Config lines
     // Optional: Configure motor inversion if needed
@@ -41,25 +47,33 @@ public class LauncherSubsystem extends SubsystemBase {
     m_krakenMotorFollower.getConfigurator().apply(motorOutputFollower);
   }
 
-  public void startLauncher(double speed) {
+  public void startLauncher() {
     // Starts the motor to the set value
-    System.out.println("Launcher Motor Speed Set to: " + speed);
-    m_krakenMotorMaster.set(speed);
+    m_currentState.setState(State.Launching);
+    launcherIsOn = true;
   }
 
   public void stopLauncher() {
     // Stops the motor
+    m_currentState.setState(State.Initial);
     m_krakenMotorMaster.set(0);
+    launcherIsOn = false;
+  }
+
+  public void reverseLauncher() {
+    throttle = -LauncherConstants.kLauncherReverseMotorSpeed;
+    SmartDashboard.putNumber("[THROTTLE]", throttle);
+    launcherIsOn = true;
   }
 
   @Override
   public void periodic() {
-    // if (RobotController.getUserButton()) {
-    //   startLauncher(LauncherMotorConstants.kLauncherMotorSpeed);
-    //   System.out.println("Launcher Motor Running");
-    // } else if (!RobotController.getUserButton()) {
-    //   System.out.println("Launcher Motor Stopped");
-    //   stopLauncher();
-    // }
+
+    if (launcherIsOn){
+      throttle = SmartDashboard.getNumber("[THROTTLE]", 0.1);
+      m_krakenMotorMaster.set(throttle);
+    }else{
+      m_krakenMotorMaster.set(0);
+    }
   }
 }

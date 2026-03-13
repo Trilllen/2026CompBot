@@ -18,6 +18,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 // import edu.wpi.first.wpilibj.ADIS16470_IMU;
 // import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -52,20 +54,10 @@ public class DriveSubsystem extends SubsystemBase {
   private Rotation2d headingOffset = new Rotation2d();
   private SwerveDrivePoseEstimator m_poseEstimator;
 
-  // Odometry class for tracking robot pose
-  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
-      DriveConstants.kDriveKinematics,
-      getGyroRotation2d(),
-      //Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
-      new SwerveModulePosition[] {
-          m_frontLeft.getPosition(),
-          m_frontRight.getPosition(),
-          m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
-      });
-
+  private final PIDController m_headingController = new PIDController(0.02, 0.0, 0.0);//likely needs tuning
+  
   /** Creates a new DriveSubsystem. */
-  public DriveSubsystem(Pigeon2 pigeon) {
+  public DriveSubsystem(Pigeon2 pigeon) {    
     // Usage reporting for MAXSwerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
 
@@ -73,16 +65,26 @@ public class DriveSubsystem extends SubsystemBase {
     System.out.println("The drive has the pigeon" + m_pigeon);
     m_pigeon.clearStickyFaults();
     m_pigeon.getConfigurator().apply(new Pigeon2Configuration());
-
+    
+    m_headingController.enableContinuousInput(-180.0, 180.0);
+    m_headingController.setTolerance(2.0); // degrees
+    
     // Odometry class for tracking robot pose
-    m_poseEstimator = new SwerveDrivePoseEstimator(
+    SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
+    DriveConstants.kDriveKinematics,
+    getGyroRotation2d(),
+    //Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
+    new SwerveModulePosition[] {
+        m_frontLeft.getPosition(),
+        m_frontRight.getPosition(),
+        m_rearLeft.getPosition(),
+        m_rearRight.getPosition()
+      });
+      m_poseEstimator = new SwerveDrivePoseEstimator(
       DriveConstants.kDriveKinematics,
-      getGyroRotation2d(),                          // Current heading
-      getSwervePositions(),                         // Swerve module positions array
-      new Pose2d()                                  // Initial starting pose
-      // Optionally, you can provide standard deviation arrays for state and vision
-      // measurement if you want to tune the Kalman filter more precisely.
-    );
+      getGyroRotation2d(),
+      getSwervePositions(),
+      new Pose2d());
   }
   
   public SwerveDrivePoseEstimator getPoseEstimator() {
@@ -208,7 +210,18 @@ public class DriveSubsystem extends SubsystemBase {
     m_pigeon.reset();
     //m_gyro.reset();
   }
-
+  public double calculateTurnToHeading(double targetDegrees) {
+    double output = m_headingController.calculate(getHeading(), targetDegrees);
+    return MathUtil.clamp(output, -1.0, 1.0);
+  }
+  
+  public boolean atHeadingSetpoint() {
+    return m_headingController.atSetpoint();
+  }
+  
+  public void resetHeadingController() {
+    m_headingController.reset();
+  }
   /**
    * Returns the heading of the robot.
    *
