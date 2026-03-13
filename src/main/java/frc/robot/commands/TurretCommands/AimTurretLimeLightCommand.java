@@ -61,6 +61,12 @@ public class AimTurretLimeLightCommand extends Command {
         return spacing;
 
     }
+    private void leftTagAiming(ZoneData data){
+    
+    }
+    private void rightTagAiming(ZoneData data){
+
+    }
 
     @Override
     public void execute() {
@@ -81,7 +87,14 @@ public class AimTurretLimeLightCommand extends Command {
             double speed = m_turret.calculateTurretCommand(data.leftTag(), offset);
             // Apply the speed to the motor
             m_turret.turnTurret(speed);
-        } else {
+        } else { //logic for single tag locks
+            ArrayList<Integer> activeTags = m_limelight.getVisibleAprilTagIDs();
+            //left tag check
+            if (activeTags.contains(data.leftTag()){
+                 leftTagAiming(data);   
+            }else if (activeTags.contains(data.rightTag(){
+                rightTagAiming(data);
+            }else{
             m_turret.turnTurret(0);
             m_currentState.setState(State.Initial);
         } // If we don't see both tags, don't move the turret (or you could choose to use
