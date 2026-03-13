@@ -9,6 +9,7 @@ import edu.wpi.first.math.controller.PIDController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants.IntakeArmConstants;
 
 public class IntakeArmSubsystem extends SubsystemBase {
@@ -17,10 +18,12 @@ public class IntakeArmSubsystem extends SubsystemBase {
   // TO DO: replace device ID with constant
   private final SparkMax intakeArmMotor = new SparkMax(IntakeArmConstants.kIntakeArmCanId, MotorType.kBrushless);
   private final RelativeEncoder intakeArmEncoder = intakeArmMotor.getEncoder();
+  private final DigitalInput raisedLimitSwitch = new DigitalInput(IntakeArmConstants.kIntakeArmRaisedLimitChannel);
 
   // PID Controller (tune these constants for your robot)
   // TO DO: replace PID values with constants
-  private final PIDController pid = new PIDController(IntakeArmConstants.kPitchP, IntakeArmConstants.kPitchI, IntakeArmConstants.kPitchD);
+  private final PIDController pid = new PIDController(IntakeArmConstants.kPitchP, IntakeArmConstants.kPitchI,
+      IntakeArmConstants.kPitchD);
   private static final double kPositionToleranceRot = 0.05; // ±1/20 rotation tolerance
 
   // Conversion factor: encoder rotations → degrees
@@ -36,7 +39,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   // Increase this value to allow the motor to deliver a greater output
   private static final double MAX_OUTPUT = 0.9;
-  
+
   // Target rotations
   // TO DO: setup as constant
   private double m_targetRotation;
@@ -61,8 +64,9 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
     m_isDeployed = false;
 
-    // Arm starts in the deployed position, but it needs to be stowed at the beginning of the match, so we set the target rotation to stow
-    //stow();
+    // Arm starts in the deployed position, but it needs to be stowed at the
+    // beginning of the match, so we set the target rotation to stow
+    // stow();
   }
 
   // TO DO: remove if not used
@@ -76,12 +80,18 @@ public class IntakeArmSubsystem extends SubsystemBase {
   }
 
   // TO DO: make private if not used outside this file
+  // Raise arm to stow position
   public void stow() {
-    //m_isDeployed = false;
-    setTargetRotation(STOW_ROT);
+    // m_isDeployed = false;
+    if (isRaised()) {
+      stopArm();
+    } else {
+      setTargetRotation(STOW_ROT);
+    }
   }
 
   // TO DO: make private if not used outside this file
+  // Lower arm to deploy position
   public void deploy() {
     m_isDeployed = true;
     setTargetRotation(DEPLOY_ROT);
@@ -95,24 +105,29 @@ public class IntakeArmSubsystem extends SubsystemBase {
     }
   }
 
-  //May need to flip this signs based off of testing
-  public void raiseArm(){
+  // Manual control to raise arm
+  public void raiseArm() {
     output = MAX_OUTPUT;
     m_manualOverride = true;
   }
-  
-  public void lowerArm(){
+
+  // Manual control to lower arm
+  public void lowerArm() {
     output = -MAX_OUTPUT;
     m_manualOverride = true;
   }
 
-  public void stopArm(){
+  public void stopArm() {
     intakeArmMotor.set(0);
     output = 0;
     m_manualOverride = false;
     m_targetRotation = intakeArmEncoder.getPosition();
   }
-  
+
+  public boolean isRaised() {
+    return raisedLimitSwitch.get(); // Assuming the limit switch returns true when pressed
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
@@ -122,14 +137,15 @@ public class IntakeArmSubsystem extends SubsystemBase {
     // if (!m_manualOverride) {
     // output = pid.calculate(m_currentRotation, m_targetRotation);
     // }
-      
+
     // Clamp to protect motor
     if (output > MAX_OUTPUT) {
       output = MAX_OUTPUT;
     } else if (output < -MAX_OUTPUT) {
       output = -MAX_OUTPUT;
     }
- //System.out.println("Current Rot: " + m_currentRotation + " Target Rot: " + m_targetRotation + " Output: " + output);
-     intakeArmMotor.set(output);
+    // System.out.println("Current Rot: " + m_currentRotation + " Target Rot: " +
+    // m_targetRotation + " Output: " + output);
+    intakeArmMotor.set(output);
   }
 }

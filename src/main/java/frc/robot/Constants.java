@@ -5,6 +5,7 @@
 // hello world 
 package frc.robot;
 
+import java.lang.annotation.Target;
 import java.net.PortUnreachableException;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -144,7 +145,7 @@ public final class Constants {
     // If true the DigitalInput.get() will return true when the switch is
     // pressed. If your switch wiring is inverted (returns false when pressed),
     // set this to false.
-    public static final boolean kRetractLimitPressedHigh = true;
+    public static final boolean kRetractLimitPressedHigh = false;
   }
 
   public static final class IndexerConstants {
@@ -172,11 +173,16 @@ public final class Constants {
     public static final double kIntakeArmMotorSpeed = 0.1;
     public static final double kIntakeArmReverseMotorSpeed = 0.1;
     public static final double kPitchGearboxRatio = 12.0; // 12:1 gear box (drive24 code used 125)
-    public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; // (drive24 code used                                                                                              // 360 for the                                                                                                // nominator)
+    public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; // (drive24 code used
+                                                                                                 // // 360 for the //
+                                                                                                 // nominator)
     public static final double kPitchP = 0.8;
     public static final double kPitchI = 0.0;
     public static final double kPitchD = 0.0;
     // public static final double kPitchFF = 0.0;
+    // Digital input channel for the retract (bottom) limit switch
+    // Set to the appropriate DIO channel on your RoboRIO
+    public static final int kIntakeArmRaisedLimitChannel = 8;
   }
 
   public static final class LedConstants {
@@ -198,9 +204,8 @@ public final class Constants {
     public static final double BLUE_MED_RIGHT = 240;
     public static final double BLUE_FAR_RIGHT = 270;
 
-    
   }
-  
+
   public static final class dPadConstants {
     public static final int kDPadUp = 0;
     public static final int kDPadRight = 90;
@@ -214,7 +219,7 @@ public final class Constants {
     public static final double kI = 0;
     public static final double kD = 0.01;
     public static final double kMinInput = -33;
-    public static final double kMaxInput = 25;
+    public static final double kMaxInput = 21;
     public static final double kTargetToleranceDegrees = 2;
     public static final double kLowClamp = -0.5;
     public static final double kHighClamp = 0.5;
@@ -229,6 +234,7 @@ public final class Constants {
       Autonomous,
       TeleopInPosition,
       TeleopNotInPosition,
+      TargetAquired,
       Launching,
       Fueling,
       Climbing

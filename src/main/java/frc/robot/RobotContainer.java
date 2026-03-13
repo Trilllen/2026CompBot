@@ -127,7 +127,7 @@ public class RobotContainer {
                 /*
                  * DRIVER CONTROLS
                  */
-                
+
                 // Right bumper -> lock wheels in X pattern
                 m_driverController.rightBumper()
                                 .whileTrue(new RunCommand(
@@ -143,49 +143,49 @@ public class RobotContainer {
                 }
 
                 m_driverController.povUp().onTrue(
-                    new SnapToAngle(
-                        m_robotDrive,
-                        () -> -m_driverController.getLeftY(),
-                        () -> -m_driverController.getLeftX(),
-                        () -> -m_driverController.getRightX(),
-                        Rotation2d.fromDegrees(0)));
+                                new SnapToAngle(
+                                                m_robotDrive,
+                                                () -> -m_driverController.getLeftY(),
+                                                () -> -m_driverController.getLeftX(),
+                                                () -> -m_driverController.getRightX(),
+                                                Rotation2d.fromDegrees(0)));
 
                 m_driverController.povRight().onTrue(
-                    new SnapToAngle(
-                        m_robotDrive,
-                        () -> -m_driverController.getLeftY(),
-                        () -> -m_driverController.getLeftX(),
-                        () -> -m_driverController.getRightX(),
-                        Rotation2d.fromDegrees(-90)));
-                
+                                new SnapToAngle(
+                                                m_robotDrive,
+                                                () -> -m_driverController.getLeftY(),
+                                                () -> -m_driverController.getLeftX(),
+                                                () -> -m_driverController.getRightX(),
+                                                Rotation2d.fromDegrees(-90)));
+
                 m_driverController.povDown().onTrue(
-                    new SnapToAngle(
-                        m_robotDrive,
-                        () -> -m_driverController.getLeftY(),
-                        () -> -m_driverController.getLeftX(),
-                        () -> -m_driverController.getRightX(),
-                        Rotation2d.fromDegrees(180)));
-                
+                                new SnapToAngle(
+                                                m_robotDrive,
+                                                () -> -m_driverController.getLeftY(),
+                                                () -> -m_driverController.getLeftX(),
+                                                () -> -m_driverController.getRightX(),
+                                                Rotation2d.fromDegrees(180)));
+
                 m_driverController.povLeft().onTrue(
-                    new SnapToAngle(
-                        m_robotDrive,
-                        () -> -m_driverController.getLeftY(),
-                        () -> -m_driverController.getLeftX(),
-                        () -> -m_driverController.getRightX(),
-                        Rotation2d.fromDegrees(90)));
+                                new SnapToAngle(
+                                                m_robotDrive,
+                                                () -> -m_driverController.getLeftY(),
+                                                () -> -m_driverController.getLeftX(),
+                                                () -> -m_driverController.getRightX(),
+                                                Rotation2d.fromDegrees(90)));
 
                 /*
                  * GUNNER CONTROLS
                  */
 
-                // Right bumper (analog) -> toggle launcher on/off
+                // Right bumper (analog) -> run launcher (hold)
                 m_gunnerController.rightBumper()
                                 .whileTrue(new StartEndCommand(
                                                 () -> m_launcherSubsystem.startLauncher(),
                                                 () -> m_launcherSubsystem.stopLauncher(),
                                                 m_launcherSubsystem));
 
-                // Right bumper -> toggle indexer on/off
+                // Right bumper -> run indexer (hold)
                 // Upper indexer is set to follow lower indexer on the Rev Hardware Client
                 m_gunnerController.rightTrigger(OIConstants.kRightTriggerThreshhold)
                                 .whileTrue(new StartEndCommand(
@@ -239,7 +239,8 @@ public class RobotContainer {
                                                                 m_robotIntakeArm));
                 m_gunnerController.y()
                                 .whileTrue(
-                                                new AimTurretLimeLightCommand(m_robotTurret, m_Limelight));
+                                                new AimTurretLimeLightCommand(m_robotTurret, m_Limelight,
+                                                                m_currentState));
                 // D-Pad Left -> reverse indexer (while held)
                 m_gunnerController.pov(dPadConstants.kDPadLeft)
                                 .whileTrue(
@@ -289,20 +290,20 @@ public class RobotContainer {
          * X -> Arm manual up (hold)
          * Y -> Lock onto hub (hold) TO DO
          * LB -> Reverse Intake Rollers (hold)
-         * RB -> Toggle launcher on and off (TOGGLE)
+         * RB -> Launcher on and off (hold)
          * upper and lower indexer motor, instead of just while held
          * LeftJoystick ->
          * LeftJoystickClick ->
          * RightJoystick -> Aim launcher
          * RightJoystickClick ->
-         * DPad Up -> Climber extend (hold) DONE
-         * DPad Down -> Climber retract (hold) DONE
+         * DPad Up -> Climber extend (hold)
+         * DPad Down -> Climber retract (hold)
          * DPad Left -> Reverse Indexer (hold)
          * DPad Right -> Reverse launcher (hold)
-         * LeftTrigger -> Start/stop Intake Rollers (toggle) DONE
-         * RightTrigger -> Toggle indexers on and off (TOGGLE) DONE
+         * LeftTrigger -> Start/stop Intake Rollers (toggle)
+         * RightTrigger -> Toggle indexers on and off (TOGGLE)
          * launcher motors, instead of just while held
-         * StartButton -> Start/Stop launcher motors (toggle) DONE
+         * StartButton -> Start/Stop launcher motors (toggle)
          * 
          */
         /*
@@ -348,14 +349,15 @@ public class RobotContainer {
                                 // new PathPlannerAuto("Dead Ahead")
                                 // .andThen(() -> m_ElevatorSubsystem.goToElevatorL2(), m_ElevatorSubsystem)
                                 new InstantCommand(() -> m_launcherSubsystem.startLauncher(), m_launcherSubsystem)
+                                                .andThen(Commands.waitSeconds(2))
                                                 // .andthen(m_robotDrive.)
-                                                .andThen(() -> m_UpperIndexerSubsystem.startUpperIndexerMotor(),
-                                                                m_UpperIndexerSubsystem)
+                                                // .andThen(() -> m_UpperIndexerSubsystem.startUpperIndexerMotor(),
+                                                // m_UpperIndexerSubsystem)
                                                 .andThen(() -> m_robotIndexer.startIndexerMotor(), m_robotIndexer)
-                                                .andThen(Commands.waitSeconds(4))
+                                                .andThen(Commands.waitSeconds(5))
                                                 .andThen(() -> m_robotIndexer.stopIndexerMotor(), m_robotIndexer)
-                                                .andThen(() -> m_UpperIndexerSubsystem.stopUpperIndexerMotor(),
-                                                                m_UpperIndexerSubsystem)
+                                                // .andThen(() -> m_UpperIndexerSubsystem.stopUpperIndexerMotor(),
+                                                // m_UpperIndexerSubsystem)
                                                 .andThen(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem);
                 return m_autonomousCommand;
 

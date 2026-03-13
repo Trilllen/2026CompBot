@@ -39,7 +39,8 @@ public class LEDSubsystem extends SubsystemBase {
     private final AddressableLEDBufferView m_BackView;
 
     Distance kLedSpacing = Meters.of(1 / 120.0);
-    LEDPattern m_greenGold = LEDPattern.gradient(GradientType.kDiscontinuous, new Color(256, 0,0), new Color(256, 256, 0));
+    LEDPattern m_greenGold = LEDPattern.gradient(GradientType.kDiscontinuous, new Color(256, 0, 0),
+            new Color(256, 256, 0));
     LEDPattern m_scrollingGreenGold = m_greenGold.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), kLedSpacing);
 
     private States m_currentState;
@@ -60,7 +61,7 @@ public class LEDSubsystem extends SubsystemBase {
         m_currentState = robotState;
 
         initializeLedPatterns();
-                
+
         LEDPattern pattern = m_patternMap.get(m_currentState.getState());
         pattern.applyTo(m_buffer);
         m_led.setData(m_buffer);
@@ -86,14 +87,14 @@ public class LEDSubsystem extends SubsystemBase {
                 case Fueling:
                     pattern = getBlinkingColor(0, 255, 255); // Cyan
                     break;
-                case TeleopNotInPosition:
+                case TargetAquired:
                     pattern = getBlinkingColor(255, 255, 0); // Yellow
                     break;
                 case Climbing:
                     pattern = getBlinkingColor(0, 0, 255); // Red
                     break;
                 default:
-                    pattern = getSolidColor(0, 0, 0); // Off                    
+                    pattern = getSolidColor(0, 0, 0); // Off
             }
             m_patternMap.put(state, pattern);
         }
