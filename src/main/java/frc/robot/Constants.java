@@ -139,6 +139,7 @@ public final class Constants {
     public static final int kClimberMotorCanId = 25;
     public static final double kClimberMotorSpeed = 1;
     public static final double kClimberReverseMotorSpeed = 1;
+    public static final double kClimberEncoderHighPoint = 30;
     // Digital input channel for the retract (bottom) limit switch
     // Set to the appropriate DIO channel on your RoboRIO
     public static final int kClimberRetractLimitChannel = 9;
