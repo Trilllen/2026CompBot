@@ -187,37 +187,32 @@ public class RobotContainer {
 
                 // Right bumper -> run indexer (hold)
                 // Upper indexer is set to follow lower indexer on the Rev Hardware Client
-                m_gunnerController.rightTrigger(OIConstants.kRightTriggerThreshhold)
+                m_gunnerController.rightTrigger(OIConstants.kRightTriggerThreshold)
                                 .whileTrue(new StartEndCommand(
                                                 () -> m_robotIndexer.startIndexerMotor(),
                                                 () -> m_robotIndexer.stopIndexerMotor(),
                                                 m_robotIndexer));
 
                 // D-Pad Up -> extend climber
-                m_gunnerController.pov(dPadConstants.kDPadUp)
-                                .whileTrue(
-                                                new StartEndCommand(
-                                                                () -> m_robotClimber.extendClimber(
-                                                                                Constants.ClimberConstants.kClimberMotorSpeed),
-                                                                () -> m_robotClimber.stopClimber(),
-                                                                m_robotClimber));
-                // // D-Pad Up -> extend climber (with 5-second timeout)
-                // m_gunnerController.pov(dPadConstants.kDPadUp)
-                // .onTrue(
-                // new RunCommand(() ->
-                // m_robotClimber.extendClimber(Constants.ClimberConstants.kClimberMotorSpeed),
-                // m_robotClimber)
-                // .withTimeout(5)
-                // .andThen(() -> m_robotClimber.stopClimber()));
+                m_gunnerController.povUp().onTrue(
+                        new InstantCommand(
+                                () -> m_robotClimber.startExtending(),
+                                m_robotClimber));
+                
+                m_gunnerController.povUp().onFalse(
+                        new InstantCommand(
+                                () -> m_robotClimber.stopClimber(),
+                                m_robotClimber));
+                // D-Pad Down -> retract climber
+                m_gunnerController.povDown().onTrue(
+                        new InstantCommand(
+                                () -> m_robotClimber.startRetracting(),
+                                m_robotClimber));
 
-                // D-Pad Down -> retract climber (while held)
-                m_gunnerController.pov(dPadConstants.kDPadDown)
-                                .whileTrue(
-                                                new StartEndCommand(
-                                                                () -> m_robotClimber
-                                                                                .retractClimber(Constants.ClimberConstants.kClimberReverseMotorSpeed),
-                                                                () -> m_robotClimber.stopClimber(),
-                                                                m_robotClimber));
+                m_gunnerController.povDown().onFalse(
+                        new InstantCommand(
+                                () -> m_robotClimber.stopClimber(),
+                                m_robotClimber));
 
                 // A button -> toggle intake arm stow/deploy
                 m_gunnerController.a()
@@ -258,17 +253,17 @@ public class RobotContainer {
                                                                 m_launcherSubsystem));
 
                 // Left trigger -> start/stop intake rollers
-                m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshhold)
+                m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
                                 .toggleOnTrue(
                                                 new StartEndCommand(
                                                                 () -> m_robotIntake.startIntakeRollers(),
                                                                 () -> m_robotIntake.stopIntakeRollers(),
                                                                 m_robotIntake));
                 // changed to toggle, see code above
-                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshhold)
+                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
                 // .onTrue(new InstantCommand(() -> m_robotIntake.startIntakeRollers(),
                 // m_robotIntake));
-                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshhold)
+                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
                 // .onFalse(new InstantCommand(() -> m_robotIntake.stopIntakeRollers(),
                 // m_robotIntake));
 
