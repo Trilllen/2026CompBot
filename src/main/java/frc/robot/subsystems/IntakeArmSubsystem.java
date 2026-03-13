@@ -10,7 +10,9 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.IntakeArmConstants;
+import java.lang.Math;
 
 public class IntakeArmSubsystem extends SubsystemBase {
 
@@ -40,27 +42,21 @@ public class IntakeArmSubsystem extends SubsystemBase {
   // Increase this value to allow the motor to deliver a greater output
   private static final double MAX_OUTPUT = 0.9;
 
-  // Target rotations
-  // TO DO: setup as constant
-  private double m_targetRotation;
-  private double m_currentRotation;
-
-  private boolean m_isDeployed;
-  private boolean m_manualOverride = false;
   private double output;
+
+  private enum IntakeStates{
+    RAISE,
+    LOWER,
+    STOP}
+  private IntakeStates state = IntakeStates.STOP;
 
   /** Creates a new IntakeArmSubsystem. */
   public IntakeArmSubsystem() {
     // No setPositionConversionFactor available in this REV API; convert rotations
     // to degrees manually
-    // Reset encoder to zero at startup (position in rotations)
-    intakeArmEncoder.setPosition(STOW_ROT);
-
+    // Reset encoder to zero at startup (position in rotations
     // Configure PID tolerance
     pid.setTolerance(kPositionToleranceRot);
-
-    m_targetRotation = STOW_ROT;
-    m_currentRotation = STOW_ROT;
 
     m_isDeployed = false;
 
@@ -68,84 +64,67 @@ public class IntakeArmSubsystem extends SubsystemBase {
     // beginning of the match, so we set the target rotation to stow
     // stow();
   }
-
-  // TO DO: remove if not used
-  public void stop() {
-    intakeArmMotor.stopMotor();
-  }
-
-  // TO DO: make private if not used outside this file
-  public void setTargetRotation(double targetRotation) {
-    m_targetRotation = targetRotation;
-  }
-
   // TO DO: make private if not used outside this file
   // Raise arm to stow position
   public void stow() {
     // m_isDeployed = false;
-    if (isRaised()) {
-      stopArm();
-    } else {
-      setTargetRotation(STOW_ROT);
+    if (!isRaised()) {
+      state = IntakeStates.RAISE;
     }
   }
 
   // TO DO: make private if not used outside this file
   // Lower arm to deploy position
   public void deploy() {
-    m_isDeployed = true;
-    setTargetRotation(DEPLOY_ROT);
-  }
-
-  public void toggleStowDeploy() {
-    if (m_isDeployed) {
-      stow();
-    } else {
-      deploy();
+    if (!inTolerance()){
+      state = IntakeStates.LOWER;
     }
   }
 
-  // Manual control to raise arm
-  public void raiseArm() {
-    output = MAX_OUTPUT;
-    m_manualOverride = true;
-  }
-
-  // Manual control to lower arm
-  public void lowerArm() {
-    output = -MAX_OUTPUT;
-    m_manualOverride = true;
-  }
-
   public void stopArm() {
+    state = IntakeStates.STOP;
     intakeArmMotor.set(0);
-    output = 0;
-    m_manualOverride = false;
-    m_targetRotation = intakeArmEncoder.getPosition();
   }
 
   public boolean isRaised() {
     return raisedLimitSwitch.get(); // Assuming the limit switch returns true when pressed
   }
 
-  @Override
+  private boolean inTolerance() {
+    double diff = Math.abs(DEPLOY_ROT-intakeArmEncoder.getPosition());
+    return (diff < kPositionToleranceRot);
+  }
+
+
+ @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    // Get motor rotations
-    m_currentRotation = intakeArmEncoder.getPosition() * IntakeArmConstants.kPitchEncoderPositionConversionFactor;
-
-    // if (!m_manualOverride) {
-    // output = pid.calculate(m_currentRotation, m_targetRotation);
-    // }
-
-    // Clamp to protect motor
-    if (output > MAX_OUTPUT) {
-      output = MAX_OUTPUT;
-    } else if (output < -MAX_OUTPUT) {
-      output = -MAX_OUTPUT;
+    // Reset encoder if the limit switch is pressed
+    if (isRaised()) {
+      intakeArmEncoder.setPosition(0);
     }
-    // System.out.println("Current Rot: " + m_currentRotation + " Target Rot: " +
-    // m_targetRotation + " Output: " + output);
-    intakeArmMotor.set(output);
+
+    if (state == IntakeStates.RAISE) {
+      if (isRaised()) {
+        stopArm();
+      } else {
+        output = pid.calculate(intakeArmEncoder.getPosition(), STOW_ROT);
+        output = Math.max(-MAX_OUTPUT, Math.min(MAX_OUTPUT, output));
+        intakeArmMotor.set(output);
+      }
+    } else if (state == IntakeStates.LOWER) {
+      if (inTolerance()) {
+        stopArm();
+      } else {
+        output = pid.calculate(intakeArmEncoder.getPosition(), DEPLOY_ROT);
+        output = Math.max(-MAX_OUTPUT, Math.min(MAX_OUTPUT, output));
+        intakeArmMotor.set(output);
+      }
+    } else {
+      intakeArmMotor.set(0);
+    }
+
+    SmartDashboard.putNumber("Intake Encoder", intakeArmEncoder.getPosition());
+    SmartDashboard.putString("[INTAKE STATE]", state.name());
+    SmartDashboard.putBoolean("Intake Raised Limit", isRaised());
   }
 }
