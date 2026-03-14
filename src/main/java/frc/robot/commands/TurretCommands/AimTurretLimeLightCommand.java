@@ -1,6 +1,7 @@
 package frc.robot.commands.TurretCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.math.MathUtil;
 import frc.robot.Constants.TurretConstants;
 import frc.robot.Constants.States;
 import frc.robot.Constants.States.State;
@@ -26,11 +27,6 @@ public class AimTurretLimeLightCommand extends Command {
         addRequirements(m_turret);
     }
 
-    public double calculateTurretCommand() { // Get the current angle to the hub from the Limelight subsystem
-        double tx = 0.0;
-        return tx;
-    }
-
     public boolean checkForTags(int tag1, int tag2) {
         ArrayList<Integer> activeTags = m_limelight.getVisibleAprilTagIDs();
         return activeTags.contains(tag1) && activeTags.contains(tag2);
@@ -41,26 +37,24 @@ public class AimTurretLimeLightCommand extends Command {
         double distance = m_limelight.getDistanceToHub();
         double currentAngle = m_limelight.getAngleToHub();
         double angleInterp = (currentAngle - data.leftAngle()) / (data.rightAngle() - data.leftAngle());
-        return angleInterp;
+        return MathUtil.clamp(angleInterp, 0, 1);
     }
 
-    public double getTagSpacing(ZoneData data) {
-        int leftTag = data.leftTag();
-        int rightTag = data.rightTag();
-        RawFiducial leftTagData = m_limelight.getRawFiducialById(leftTag);
-        double leftTagTXNC = 0.0;
-        if (leftTagData != null) {
-            leftTagTXNC = leftTagData.txnc;
+    public double getInterpolatedTargetTx(ZoneData data) {
+        RawFiducial leftTagData = m_limelight.getRawFiducialById(data.leftTag());
+        RawFiducial rightTagData = m_limelight.getRawFiducialById(data.rightTag());
+    
+        if (leftTagData == null || rightTagData == null) {
+            return 0.0;
         }
-        RawFiducial rightTagData = m_limelight.getRawFiducialById(rightTag);
-        double rightTagTXNC = 0.0;
-        if (rightTagData != null) {
-            rightTagTXNC = rightTagData.txnc;
-        }
-        double spacing = leftTagTXNC - rightTagTXNC;
-        return spacing;
 
+        double leftTx = leftTagData.txnc;
+        double rightTx = rightTagData.txnc;
+        double t = interpolate(data);
+    
+        return leftTx + t * (rightTx - leftTx);
     }
+    
     private void leftTagAiming(ZoneData data){
     
     }
@@ -77,30 +71,26 @@ public class AimTurretLimeLightCommand extends Command {
         // Check if both tags are being tracked
         boolean bothTagsSeen = checkForTags(data.leftTag(), data.rightTag());
         if (bothTagsSeen) {
-            // If both tags are seen, we can use the average of the left and right angles
-            // for better accuracy
             m_currentState.setState(State.TargetAquired);
-            double interpolation = interpolate(data);
-            double tagSpacing = getTagSpacing(data);
-            double offset = tagSpacing * interpolation;
-
-            double speed = m_turret.calculateTurretCommand(data.leftTag(), offset);
-            // Apply the speed to the motor
+        
+            double targetTx = getInterpolatedTargetTx(data);
+            double speed = m_turret.calculateTurretCommandFromTx(targetTx);
             m_turret.turnTurret(speed);
         } else { //logic for single tag locks
             ArrayList<Integer> activeTags = m_limelight.getVisibleAprilTagIDs();
             //left tag check
-            if (activeTags.contains(data.leftTag()){
+            if (activeTags.contains(data.leftTag())){
                  leftTagAiming(data);   
-            }else if (activeTags.contains(data.rightTag(){
+            }else if (activeTags.contains(data.rightTag())){
                 rightTagAiming(data);
             }else{
-            m_turret.turnTurret(0);
-            m_currentState.setState(State.Initial);
-        } // If we don't see both tags, don't move the turret (or you could choose to use
+                m_turret.turnTurret(0);
+                m_currentState.setState(State.Initial);
+            } // If we don't see both tags, don't move the turret (or you could choose to use
           // one tag if you want)
+        }
     }
-
+    
     @Override
     public boolean isFinished() {
         // Don't finish on our own — let the trigger (holding Y) control lifetime.
