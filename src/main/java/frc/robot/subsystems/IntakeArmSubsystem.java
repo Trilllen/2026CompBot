@@ -127,8 +127,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
         if (didWeOvershoot()) {
           overShootHandling();
         }else{
-        output = 0.3;
-        intakeArmMotor.set(output);
+          output = 0.3;
+          intakeArmMotor.set(output);
         }
       }
     } else {
@@ -138,5 +138,6 @@ public class IntakeArmSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Intake Encoder", intakeArmEncoder.getPosition());
     SmartDashboard.putString("[INTAKE STATE]", state.name());
     SmartDashboard.putBoolean("Intake Raised Limit", isRaised());
+    SmartDashboard.putBoolean("overshot?", didWeOvershoot());
   }
 }

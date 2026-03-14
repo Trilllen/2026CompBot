@@ -56,7 +56,7 @@ public class ClimberSubsystem extends SubsystemBase {
   }
   
   public void startExtending() {
-      if (climberEncoder.getPosition() < climberMaxHeight){
+      if (climberEncoder.getPosition() > climberMaxHeight){
         state = ClimberStates.EXTENDING;        
       }
   }
@@ -93,7 +93,7 @@ public class ClimberSubsystem extends SubsystemBase {
     }
     //Extension logic
     if (state == ClimberStates.EXTENDING){
-      if (climberEncoder.getPosition() >= climberMaxHeight) {
+      if (climberEncoder.getPosition() <= climberMaxHeight) {
         stopClimber();
       } else {
         extendClimber();
