@@ -31,7 +31,7 @@ public class TurretSubsystem extends SubsystemBase {
     public TurretSubsystem(LimeLightSubsystem limelight) {
         // Configure PID controller for continuous input (turret will be limited to 180
         // degrees)
-        m_turretPID.enableContinuousInput(TurretConstants.kMinInput, TurretConstants.kMaxInput); 
+        // m_turretPID.enableContinuousInput(TurretConstants.kMinInput, TurretConstants.kMaxInput); 
         m_limelight = limelight;                                                                                          
         // Set the controller tolerance so we can check when we're "on target"
         m_turretPID.setTolerance(TurretConstants.kTargetToleranceDegrees);
@@ -126,6 +126,15 @@ public class TurretSubsystem extends SubsystemBase {
         // m_turretMotor.set(m_pid.calculate(m_encoder.getPosition(), angleToTarget));
 
     }
+
+    public double calculateTurretCommandFromTx(double targetTx) {
+        double output = m_turretPID.calculate(targetTx, 0.0);
+    
+        if (m_turretPID.atSetpoint()) {
+            return 0.0;}
+
+        return MathUtil.clamp(output, -1.0, 1.0);
+}
 
     public double calculateTurretCommand(int tagId, double offset) {
             // The 'tx' value is the error (difference from center, in degrees)
