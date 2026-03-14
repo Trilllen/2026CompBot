@@ -89,8 +89,8 @@ public final class Constants {
     public static final double kDriveDeadband = 0.05;
     public static final double kGunnerDeadBand = 0.05;
 
-    public static final double kLeftTriggerThreshhold = 0.9;
-    public static final double kRightTriggerThreshhold = 0.9;
+    public static final double kLeftTriggerThreshold = 0.9;
+    public static final double kRightTriggerThreshold = 0.9;
   }
 
   public static final class AutoConstants {

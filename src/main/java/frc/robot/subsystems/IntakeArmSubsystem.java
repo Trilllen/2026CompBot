@@ -41,6 +41,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   // Increase this value to allow the motor to deliver a greater output
   private static final double MAX_OUTPUT = 0.9;
+  private boolean m_isDeployed = false; // Track whether the arm is currently deployed or stowed
 
   private double output;
 
