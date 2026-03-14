@@ -26,7 +26,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
   // TO DO: replace PID values with constants
   private final PIDController pid = new PIDController(IntakeArmConstants.kPitchP, IntakeArmConstants.kPitchI,
       IntakeArmConstants.kPitchD);
-  private static final double kPositionToleranceRot = 0.05; // ±1/20 rotation tolerance
+  private static final double kPositionToleranceRot = 0.3; 
 
   // Conversion factor: encoder rotations → degrees
   // TO DO: setup as constants
@@ -37,11 +37,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   // We can change these to what we want after testing
   private static final double STOW_ROT = 0.0;
-  private static final double DEPLOY_ROT = -28.5;
+  private static final double DEPLOY_ROT = 24;
 
   // Increase this value to allow the motor to deliver a greater output
   private static final double MAX_OUTPUT = 0.9;
-  private boolean m_isDeployed = false; // Track whether the arm is currently deployed or stowed
+  private boolean m_isDeployed = false; // Track whether the arm is currently deployed or stowedgi
 
   private double output;
 
@@ -108,14 +108,14 @@ public class IntakeArmSubsystem extends SubsystemBase {
       if (isRaised()) {
         stopArm();
       } else {
-        output = pid.calculate(intakeArmEncoder.getPosition(), STOW_ROT);
+        output = -0.3;
         intakeArmMotor.set(output);
       }
     } else if (state == IntakeStates.LOWER) {
       if (inTolerance()) {
         stopArm();
       } else {
-        output = pid.calculate(intakeArmEncoder.getPosition(), DEPLOY_ROT);
+        output = 0.3;
         intakeArmMotor.set(output);
       }
     } else {

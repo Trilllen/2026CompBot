@@ -93,6 +93,8 @@ public class RobotContainer {
                 m_LedSubsystem = new LEDSubsystem(m_currentState);
                 configureButtonBindings();
 
+                m_Pigeon.setYaw(180);
+
                 // Configure default commands
                 if (m_robotDrive != null) {
                         m_robotDrive.setDefaultCommand(
@@ -339,26 +341,33 @@ public class RobotContainer {
                 // */
                 // return autoChooser.getSelected();
 
+                Command m_autonomousCommand = new InstantCommand(
+                        () -> m_robotIntakeArm.deploy(), m_robotIntakeArm).andThen(
+                                new InstantCommand(
+                                        () -> m_robotClimber.startRetracting(), m_robotClimber
+                                )
+                        );
+
                 /*
                  * Autonomouse to start launcher, move forward 2 feet, then run upper indexer,
                  * then run indexer, wait 4 seconds, then stop motors.
                  */
-                Command m_autonomousCommand;
-                m_autonomousCommand =
-                                // new PathPlannerAuto("Dead Ahead")
-                                // .andThen(() -> m_ElevatorSubsystem.goToElevatorL2(), m_ElevatorSubsystem)
-                                new InstantCommand(() -> m_launcherSubsystem.startLauncher(), m_launcherSubsystem)
-                                                .andThen(Commands.waitSeconds(2))
-                                                // .andthen(m_robotDrive.)
-                                                // .andThen(() -> m_UpperIndexerSubsystem.startUpperIndexerMotor(),
-                                                // m_UpperIndexerSubsystem)
-                                                .andThen(() -> m_robotIndexer.startIndexerMotor(), m_robotIndexer)
-                                                .andThen(Commands.waitSeconds(5))
-                                                .andThen(() -> m_robotIndexer.stopIndexerMotor(), m_robotIndexer)
-                                                // .andThen(() -> m_UpperIndexerSubsystem.stopUpperIndexerMotor(),
-                                                // m_UpperIndexerSubsystem)
-                                                .andThen(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem);
-                return m_autonomousCommand;
+                // Command m_autonomousCommand;
+                // m_autonomousCommand =
+                //                 // new PathPlannerAuto("Dead Ahead")
+                //                 // .andThen(() -> m_ElevatorSubsystem.goToElevatorL2(), m_ElevatorSubsystem)
+                //                 new InstantCommand(() -> m_launcherSubsystem.startLauncher(), m_launcherSubsystem)
+                //                                 .andThen(Commands.waitSeconds(2))
+                //                                 // .andthen(m_robotDrive.)
+                //                                 // .andThen(() -> m_UpperIndexerSubsystem.startUpperIndexerMotor(),
+                //                                 // m_UpperIndexerSubsystem)
+                //                                 .andThen(() -> m_robotIndexer.startIndexerMotor(), m_robotIndexer)
+                //                                 .andThen(Commands.waitSeconds(5))
+                //                                 .andThen(() -> m_robotIndexer.stopIndexerMotor(), m_robotIndexer)
+                //                                 // .andThen(() -> m_UpperIndexerSubsystem.stopUpperIndexerMotor(),
+                //                                 // m_UpperIndexerSubsystem)
+                //                                 .andThen(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem);
+                // return m_autonomousCommand;
 
                 // this is code from 2025. is it needed/useful?
                 // // Create config for trajectory
@@ -402,6 +411,7 @@ public class RobotContainer {
                 // // Run path following command, then stop at the end.
                 // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0,
                 // false));
+                        return m_autonomousCommand;
         }
 
 }
