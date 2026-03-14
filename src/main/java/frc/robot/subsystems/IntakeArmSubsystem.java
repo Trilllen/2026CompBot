@@ -93,7 +93,16 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   private boolean inTolerance() {
     double diff = Math.abs(DEPLOY_ROT-intakeArmEncoder.getPosition());
-    return (diff < kPositionToleranceRot);
+    return (diff < kPositionToleranceRot || intakeArmEncoder.getPosition() > DEPLOY_ROT);
+  }
+  private void overShootHandling() {
+    if (intakeArmEncoder.getPosition() > DEPLOY_ROT) {
+      stopArm();
+    }
+  }
+
+  private boolean didWeOvershoot() {
+    return intakeArmEncoder.getPosition() > DEPLOY_ROT;
   }
 
 
@@ -115,8 +124,12 @@ public class IntakeArmSubsystem extends SubsystemBase {
       if (inTolerance()) {
         stopArm();
       } else {
+        if (didWeOvershoot()) {
+          overShootHandling();
+        }else{
         output = 0.3;
         intakeArmMotor.set(output);
+        }
       }
     } else {
       intakeArmMotor.set(0);
