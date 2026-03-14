@@ -342,7 +342,9 @@ public class RobotContainer {
                 // return autoChooser.getSelected();
 
                 Command m_autonomousCommand = new InstantCommand(
-                        () -> m_robotIntakeArm.deploy(), m_robotIntakeArm).andThen(
+                        () -> m_robotIntakeArm.deploy(), m_robotIntakeArm)
+                        .andThen(Commands.waitSeconds(1))
+                        .andThen(
                                 new InstantCommand(
                                         () -> m_robotClimber.startRetracting(), m_robotClimber
                                 )
