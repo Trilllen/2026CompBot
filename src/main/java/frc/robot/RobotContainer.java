@@ -333,23 +333,47 @@ public class RobotContainer {
          * @return the command to run in autonomous
          */
         public Command getAutonomousCommand() {
+                return Commands.sequence(
+                        // Current autonomous
+                        new InstantCommand(() -> m_robotIntakeArm.deploy(), m_robotIntakeArm),
+                        Commands.waitSeconds(1),
+                        new InstantCommand(() -> m_robotClimber.startRetracting(), m_robotClimber),
 
-                // /**
-                // * Use this to pass the autonomous command to the main {@link Robot} class.
-                // *
-                // * @return the command to run in autonomous
-                // */
-                // return autoChooser.getSelected();
+                        // Drive backwards for 2 seconds
+                        new RunCommand(
+                        () -> m_robotDrive.drive(-0.3, 0.0, 0.0, true),
+                        m_robotDrive
+                        ).withTimeout(2.0),
 
-                Command m_autonomousCommand = new InstantCommand(
-                        () -> m_robotIntakeArm.deploy(), m_robotIntakeArm)
-                        .andThen(Commands.waitSeconds(1))
-                        .andThen(
-                                new InstantCommand(
-                                        () -> m_robotClimber.startRetracting(), m_robotClimber
-                                )
-                        );
-                        return m_autonomousCommand;
+                        // Stop drivetrain
+                        new InstantCommand(
+                        () -> m_robotDrive.drive(0.0, 0.0, 0.0, true),
+                        m_robotDrive
+                        ),
+
+                        // Spin up launcher
+                        new InstantCommand(
+                        () -> m_launcherSubsystem.startLauncher(),
+                        m_launcherSubsystem
+                        ),
+                        Commands.waitSeconds(0.6),
+
+                        // Feed into shooter
+                        new InstantCommand(
+                        () -> m_robotIndexer.startIndexerMotor(),
+                        m_robotIndexer
+                        ),
+                        Commands.waitSeconds(5.0),
+
+                        // Stop feed and launcher
+                        new InstantCommand(
+                        () -> m_robotIndexer.stopIndexerMotor(),
+                        m_robotIndexer
+                        ),
+                        new InstantCommand(
+                        () -> m_launcherSubsystem.stopLauncher(),
+                        m_launcherSubsystem
+                        )
+                );
         }
-
 }
