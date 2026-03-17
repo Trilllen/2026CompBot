@@ -7,6 +7,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 import frc.robot.Constants.OIConstants;
+import frc.robot.Constants.DriveConstants;
 import frc.robot.subsystems.DriveSubsystem;
 
 public class SnapToAngle extends Command {
@@ -42,6 +43,10 @@ public class SnapToAngle extends Command {
       double y = MathUtil.applyDeadband(m_ySupplier.getAsDouble(), OIConstants.kDriveDeadband);
   
       double rot = m_drive.calculateTurnToHeading(m_targetHeading.getDegrees());
+      double clamp = DriveConstants.kMaxSnapSpeed;  
+      rot = MathUtil.clamp(rot, -clamp, clamp);
+        
+    
   
       m_drive.drive(x, y, rot, true);
     }
