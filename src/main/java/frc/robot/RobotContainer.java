@@ -242,7 +242,10 @@ public class RobotContainer {
                                 .whileTrue(
                                                 new AimTurretLimeLightCommand(m_robotTurret, m_Limelight,
                                                                 m_currentState));
-                // D-Pad Left -> reverse indexer (while held)
+                m_gunnerController.a().whileTrue(
+                        new SingleTagAim(m_robotTurret, m_LimeLight, m_currentState));
+                
+                
                 m_gunnerController.povLeft()
                                 .whileTrue(
                                                 new StartEndCommand(

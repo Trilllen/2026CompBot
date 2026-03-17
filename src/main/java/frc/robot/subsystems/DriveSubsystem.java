@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
@@ -55,7 +56,9 @@ public class DriveSubsystem extends SubsystemBase {
   private Rotation2d headingOffset = new Rotation2d();
   private SwerveDrivePoseEstimator m_poseEstimator;
 
-  private final PIDController m_headingController = new PIDController(0.02, 0.0, 0.0);//likely needs tuning
+  private final Field2d m_field = new Field2d();
+
+  private final PIDController m_headingController = new PIDController(0.01, 0.0, 0.001);//likely needs tuning
   
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem(Pigeon2 pigeon) {    
@@ -86,6 +89,8 @@ public class DriveSubsystem extends SubsystemBase {
       getGyroRotation2d(),
       getSwervePositions(),
       new Pose2d());
+
+      SmartDashboard.putData("Field", m_field);
   }
   
   public SwerveDrivePoseEstimator getPoseEstimator() {
@@ -106,6 +111,10 @@ public class DriveSubsystem extends SubsystemBase {
           m_rearLeft.getPosition(),
           m_rearRight.getPosition()
         });
+    m_field.setRobotPose(getPose());
+    SmartDashboard.putNumber("[HEADING]", getHeading());
+    SmartDashboard.putNumber("[POSE X]", getPose().getX());
+    SmartDashboard.putNubmer("[POSE Y]", getPose().getY());
   }
 
   /**
