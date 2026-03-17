@@ -1,31 +1,86 @@
 package frc.robot.commands.TurretCommands;
 
-import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.ExampleSubsystem;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.math.MathUtil;
+import frc.robot.Constants.TurretConstants;
+import frc.robot.Constants.States;
+import frc.robot.Constants.States.State;
+import frc.robot.subsystems.TurretSubsystem;
+import frc.robot.subsystems.LimeLightSubsystem;
+import frc.robot.subsystems.LimeLightSubsystem.ZoneData;
+import frc.robot.subsystems.LimeLightSubsystem.HubZone;
+import frc.robot.utils.LimelightHelpers.RawFiducial;
 
-public class SingleTagAim extends CommandBase {
-  // If this command requires a subsystem, declare it here
-  // private final ExampleSubsystem m_subsystem;
+import java.util.ArrayList;
 
-  public SingleTagAim() {
-    // Add requirements if necessary: addRequirements(subsystem);
-  }
+public class SingleTagAim extends Command {
+    private TurretSubsystem m_turret;
+    private LimeLightSubsystem m_limelight;
+    public boolean m_isRed;
+    public States m_currentState;
 
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {}
+    public SingleTagAim(TurretSubsystem turret, LimeLightSubsystem limelight, States state) {
+        m_turret = turret;
+        m_limelight = limelight;
+        m_currentState = state;
+        m_isRed = m_limelight.isRedAlliance();
+        addRequirements(m_turret);
+    }
 
-  // Called every time the scheduler runs while the command is scheduled.
-  @Override
-  public void execute() {}
+    public boolean checkForTag(int tagID) {
+        ArrayList<Integer> activeTags = m_limelight.getVisibleAprilTagIDs();
+        return activeTags.contains(tagID);
+    }
 
-  // Called once the command ends or is interrupted.
-  @Override
-  public void end(boolean interrupted) {}
+    private boolean leftTagClosest(ZoneData data){
+      double leftAngle = data.leftAngle();
+      double rightAngle = data.rightAngle();
+      double botAngle = m_limelight.getAngleToHub();
+      return (Math.abs(leftAngle-botAngle)<Math.abs(rightAngle-botAngle));
+    }
 
-  // Returns true when the command should end.
-  @Override
-  public boolean isFinished() {
-    return false;
-  }
+    private void aimAtTag(int tagID){
+      RawFiducial tagData = m_limelight.getRawFiducialById(tagID);
+      double tx = tagData.txnc;
+      double turnSpeed = m_turret.calculateTurretCommandFromTx(tx);
+      m_turret.turnTurret(turnSpeed);
+    }
+  
+    @Override
+    public void execute() {
+        // Get the calculated motor speed from the subsystem logic
+        // ZoneData contains (HubZone zone, double leftAngle, int leftTag, double
+        // rightAngle, int rightTag)
+        ZoneData data = m_limelight.getHubZoneData();
+
+        //check that we are actually able to score
+        if (data.zone() == HubZone.NONE) {
+          m_turret.turnTurret(0);
+          return;
+        }
+        
+        // Check if both tags are being tracked
+        boolean leftTagAiming = leftTagClosest(data);
+        if (leftTagAiming && checkForTag(data.leftTag())){
+          aimAtTag(data.leftTag());
+        } else if (checkForTag(data.rightTag())) {
+          aimAtTag(data.rightTag());
+        } else {
+          // Set LEDs a color to indicate we don't have a firing solution
+        }
+    }
+    
+    @Override
+    public boolean isFinished() {
+        // Don't finish on our own — let the trigger (holding Y) control lifetime.
+        // While the command is scheduled it will continue to call execute() so
+        // the turret keeps updating. The Trigger.whileTrue(...) mapping will
+        // cancel this command when the Y button is released. return false;
+        return false;
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        m_turret.turnTurret(0); // Stop the turret when command ends
+    }
 }
