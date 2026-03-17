@@ -55,7 +55,7 @@ public class DriveSubsystem extends SubsystemBase {
   private Rotation2d headingOffset = new Rotation2d();
   private SwerveDrivePoseEstimator m_poseEstimator;
 
-  private final PIDController m_headingController = new PIDController(0.02, 0.0, 0.0);//likely needs tuning
+  private final PIDController m_headingController = new PIDController(0.01, 0.0, 0.001);//likely needs tuning
   
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem(Pigeon2 pigeon) {    
