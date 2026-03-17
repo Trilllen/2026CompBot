@@ -114,7 +114,7 @@ public class DriveSubsystem extends SubsystemBase {
     m_field.setRobotPose(getPose());
     SmartDashboard.putNumber("[HEADING]", getHeading());
     SmartDashboard.putNumber("[POSE X]", getPose().getX());
-    SmartDashboard.putNubmer("[POSE Y]", getPose().getY());
+    SmartDashboard.putNumber("[POSE Y]", getPose().getY());
   }
 
   /**
