@@ -87,8 +87,11 @@ public class LEDSubsystem extends SubsystemBase {
                 case Fueling:
                     pattern = getBlinkingColor(0, 255, 255); // Cyan
                     break;
-                case TargetAquired:
+                case TargetAcquired:
                     pattern = getBlinkingColor(255, 255, 0); // Yellow
+                    break;
+                case NoTarget:
+                    pattern = getBlinkingColor(255, 0, 0); // Red
                     break;
                 case Climbing:
                     pattern = getBlinkingColor(0, 0, 255); // Red
