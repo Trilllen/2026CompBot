@@ -1,7 +1,8 @@
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import frc.robot.Constants.LauncherConstants;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -19,8 +20,8 @@ public class LauncherHoodSubsystem extends SubsystemBase {
   private SparkMax m_hoodController = new SparkMax(canID, MotorType.kBrushed);
   private AnalogInput reading = new AnalogInput(LauncherConstants.kHoodPort);
   private double minSetpoint = LauncherConstants.kHoodMinSetpoint;
-  private double maxSetpoint = LauncherConstants.kHoodMaxSetPoint;
-  private final PIDController m_hoodPID = new PIDController(Launcher7Constants.kPHood, TurretConstants.kIHood,
+  private double maxSetpoint = LauncherConstants.kHoodMaxSetpoint;
+  private final PIDController m_hoodPID = new PIDController(LauncherConstants.kPHood, LauncherConstants.kIHood,
             TurretConstants.kDHood);
   private double PWMrange = Math.abs(maxSetpoint-minSetpoint);
   
@@ -42,9 +43,13 @@ public class LauncherHoodSubsystem extends SubsystemBase {
     }
   }
 
-  public void goToSetpoint(double setpointRaw) {
-    setpoint = minSetpoint+(PWMrange*setpointRAW);
-    m_hoodPID.setSetpoint(setpoint);
+
+  /**
+ * @param desiredExtension normalized [0–1], not voltage
+ */
+  public void goToSetpoint(double desiredExtension) {
+    targetSetpoint = minSetpoint+(PWMrange*setpointRAW);
+    m_hoodPID.setSetpoint(targetSetpoint);
     state = States.GOTOSETPOINT;
   }
 
@@ -70,12 +75,37 @@ public class LauncherHoodSubsystem extends SubsystemBase {
     double currentPosition = getPosition();
     double output = 0;
     switch (state) {
-      case STOPPED;
-        m_hoodcontroller.set(0.0)
-    
-    
-    
-    }
+      case STOPPED:
+        m_hoodController.set(0.0);
+        m_hoodPID.setSetpoint(getPosition());
+        break;
+        
+      case FULLRETRACT:
+        if (!atMin()){
+        } else {
+          stop();
+        }
+          break;
+        
+      case FULLEXTEND:
+        if (!atMax()){
+        } else {
+          stop();
+        }
+        break;
+        
+      case GOTOSETPOINT:
+        if (m_hoodPID.atSetpoint()){
+          stop();}
+        break;
+        
+      }
+    output = m_hoodPID.calculate(currentPosition);
+    m_hoodController.set(output);
+
+    SmartDashboard.putNumber("Hood Position", currentPosition);
+    SmartDashboard.putNumber("Hood Setpoint", m_hoodPID.getSetpoint());
+    SmartDashboard.putString("Hood State", state.name());
     
   }
 
