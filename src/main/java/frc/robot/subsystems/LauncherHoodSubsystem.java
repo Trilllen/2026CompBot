@@ -22,7 +22,7 @@ public class LauncherHoodSubsystem extends SubsystemBase {
   private double minSetpoint = LauncherConstants.kHoodMinSetpoint;
   private double maxSetpoint = LauncherConstants.kHoodMaxSetpoint;
   private final PIDController m_hoodPID = new PIDController(LauncherConstants.kPHood, LauncherConstants.kIHood,
-            TurretConstants.kDHood);
+            LauncherConstants.kDHood);
   private double PWMrange = Math.abs(maxSetpoint-minSetpoint);
   
   public LauncherHoodSubsystem() {
@@ -48,7 +48,7 @@ public class LauncherHoodSubsystem extends SubsystemBase {
  * @param desiredExtension normalized [0–1], not voltage
  */
   public void goToSetpoint(double desiredExtension) {
-    targetSetpoint = minSetpoint+(PWMrange*setpointRAW);
+    double targetSetpoint = minSetpoint+(PWMrange*desiredExtension);
     m_hoodPID.setSetpoint(targetSetpoint);
     state = States.GOTOSETPOINT;
   }
