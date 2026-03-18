@@ -139,6 +139,9 @@ public final class Constants {
     public static final int kHoodDIOPort = 7;
     public static final double kHoodMinSetpoint = 0;
     public static final double kHoodMaxSetpoint = 1;
+    public static final double kPHood = 0.4;
+    public static final double kIHood = 0.0;
+    public static final double kHoodD = 0.0;
   }
 
   public static final class ClimberConstants {
