@@ -33,6 +33,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import com.pathplanner.lib.auto.NamedCommands;
 
 // other imports
 import com.ctre.phoenix6.CANBus;
@@ -104,6 +105,8 @@ public class RobotContainer {
                 configureAutoChooser();
 
                 configureButtonBindings();
+
+                setUpAutoCommands();
 
                 m_Pigeon.setYaw(180);
 
@@ -310,6 +313,39 @@ public class RobotContainer {
                                                 OIConstants.kGunnerDeadBand)));
         }
 
+        private void setUpAutoCommands() {
+                NamedCommands.registerCommand("lowerIntake",
+                                new InstantCommand(
+                                                () -> m_robotIntakeArm.deploy(),
+                                                m_robotIntakeArm));
+
+                NamedCommands.registerCommand("startIndexer",
+                                new InstantCommand(
+                                                () -> m_robotIndexer.startIndexerMotor(),
+                                                m_robotIndexer));
+
+                NamedCommands.registerCommand("stopIndexer",
+                                new InstantCommand(
+                                                () -> m_robotIndexer.stopIndexerMotor(),
+                                                m_robotIndexer));
+
+                NamedCommands.registerCommand("startLauncher",
+                                new InstantCommand(
+                                                () -> m_launcherSubsystem.startLauncher(),
+                                                m_launcherSubsystem));
+
+                NamedCommands.registerCommand("stopLauncher",
+                                new InstantCommand(
+                                                () -> m_launcherSubsystem.stopLauncher(),
+                                                m_launcherSubsystem));
+
+                NamedCommands.registerCommand("retractClimber",
+                                new InstantCommand(
+                                                () -> m_robotClimber.startRetracting(),
+                                                m_robotClimber));
+                // Set up any autonomous commands or command groups here
+        }
+
         /*
          * Gunner
          * A -> Single tag aim (hold)
@@ -360,6 +396,7 @@ public class RobotContainer {
          * @return the command to run in autonomous
          */
         public Command getAutonomousCommand() {
+
                 return m_autoChooser.getSelected();
                 
                 // return Commands.sequence(
@@ -397,5 +434,7 @@ public class RobotContainer {
                 //                 new InstantCommand(
                 //                                 () -> m_launcherSubsystem.stopLauncher(),
                 //                                 m_launcherSubsystem));
+
+
         }
 }
