@@ -134,6 +134,14 @@ public final class Constants {
 
     public static final double kLauncherMotorSpeed = 0.7;
     public static final double kLauncherReverseMotorSpeed = 1;
+
+    public static final int kHoodControllerCanId = 23;
+    public static final int kHoodPort = 0;
+    public static final double kHoodMinSetpoint = 0;
+    public static final double kHoodMaxSetpoint = 1;
+    public static final double kPHood = 0.4;
+    public static final double kIHood = 0.0;
+    public static final double kHoodD = 0.0;
   }
 
   public static final class ClimberConstants {
