@@ -11,6 +11,42 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "startLauncher"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "startIndexer"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "stopLauncher"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "stopIndexer"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "hub lineup"
@@ -26,6 +62,18 @@
           "type": "path",
           "data": {
             "pathName": "4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "retractClimber"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 10.0
           }
         }
       ]
