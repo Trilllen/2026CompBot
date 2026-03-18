@@ -7,27 +7,28 @@ package frc.robot;
 // imports for Rev Robotics MaxSwerve
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.Constants.DriveConstants;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.dPadConstants;
 import frc.robot.commands.TurretCommands.AimTurretLimeLightCommand;
 import frc.robot.commands.TurretCommands.AimTurretManualCommand;
 import frc.robot.commands.SnapToAngle;
 import frc.robot.commands.TurretCommands.SingleTagAim;
+import frc.robot.commands.AutonomousCommands.LeftAutoCommand;
+import frc.robot.commands.AutonomousCommands.RightAutoCommand;
+import frc.robot.commands.AutonomousCommands.CenterAutoCommand;
 import frc.robot.Constants.States;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IndexerSubsystem;
 import frc.robot.subsystems.IntakeArmSubsystem;
-import frc.robot.subsystems.UpperIndexerSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
@@ -63,10 +64,15 @@ public class RobotContainer {
         private final TurretSubsystem m_robotTurret;
         private final ClimberSubsystem m_robotClimber;
         private final LimeLightSubsystem m_Limelight;
-        private final LEDSubsystem m_LedSubsystem;
         private final IndexerSubsystem m_robotIndexer;
         private final LauncherSubsystem m_launcherSubsystem;
-        private final UpperIndexerSubsystem m_UpperIndexerSubsystem;
+
+                // Automous options
+        private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
+        private final Command m_leftAuto;
+        private final Command m_rightAuto;
+        private final Command m_centerAuto;
+        private final Command m_noneAuto = null; // Option for no autonomous routine
 
         // The driver's controller
         private final CommandXboxController m_driverController = new CommandXboxController(
@@ -91,8 +97,13 @@ public class RobotContainer {
                 m_robotClimber = new ClimberSubsystem();
                 m_launcherSubsystem = new LauncherSubsystem(m_currentState);
                 m_robotIndexer = new IndexerSubsystem();
-                m_UpperIndexerSubsystem = new UpperIndexerSubsystem();
-                m_LedSubsystem = new LEDSubsystem(m_currentState);
+
+                // Automous options
+                m_leftAuto = new LeftAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
+                m_rightAuto = new RightAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
+                m_centerAuto = new CenterAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
+                configureAutoChooser();
+
                 configureButtonBindings();
 
                 setUpAutoCommands();
@@ -123,6 +134,18 @@ public class RobotContainer {
                                                         },
                                                         m_robotDrive));
                 }
+        }
+
+        // Configure the autonomous command chooser and publish it to the SmartDashboard
+        private void configureAutoChooser() {
+                // Add options to the chooser
+                m_autoChooser.setDefaultOption("Left", m_leftAuto);
+                // m_autoChooser.addOption("Center", m_centerAuto);
+                // m_autoChooser.addOption("Right", m_rightAuto);
+                m_autoChooser.addOption("None", m_noneAuto);
+
+                // Publish the chooser to NetworkTables (SmartDashboard)
+                SmartDashboard.putData("Auto Choices", m_autoChooser);
         }
 
         /**
@@ -325,7 +348,7 @@ public class RobotContainer {
 
         /*
          * Gunner
-         * A -> Extend/Retract Intake (toggle)
+         * A -> Single tag aim (hold)
          * B -> Arm down (hold)
          * X -> Arm manual up (hold)
          * Y -> Lock onto hub (hold) TO DO
@@ -366,46 +389,52 @@ public class RobotContainer {
          * 
          */
 
+
         /**
          * Use this to pass the autonomous command to the main {@link Robot} class.
          *
          * @return the command to run in autonomous
          */
         public Command getAutonomousCommand() {
-                return Commands.sequence(
-                                // Current autonomous
-                                new InstantCommand(() -> m_robotIntakeArm.deploy(), m_robotIntakeArm),
-                                Commands.waitSeconds(1),
-                                new InstantCommand(() -> m_robotClimber.startRetracting(), m_robotClimber),
 
-                                // Drive backwards for 2 seconds
-                                new RunCommand(
-                                                () -> m_robotDrive.drive(-0.3, 0.0, 0.0, true),
-                                                m_robotDrive).withTimeout(2.0),
+                return m_autoChooser.getSelected();
+                
+                // return Commands.sequence(
+                //                 // Current autonomous
+                //                 new InstantCommand(() -> m_robotIntakeArm.deploy(), m_robotIntakeArm),
+                //                 Commands.waitSeconds(1),
+                //                 new InstantCommand(() -> m_robotClimber.startRetracting(), m_robotClimber),
 
-                                // Stop drivetrain
-                                new InstantCommand(
-                                                () -> m_robotDrive.drive(0.0, 0.0, 0.0, true),
-                                                m_robotDrive),
+                //                 // Drive backwards for 2 seconds
+                //                 new RunCommand(
+                //                                 () -> m_robotDrive.drive(-0.3, 0.0, 0.0, true),
+                //                                 m_robotDrive).withTimeout(2.0),
 
-                                // Spin up launcher
-                                new InstantCommand(
-                                                () -> m_launcherSubsystem.startLauncher(),
-                                                m_launcherSubsystem),
-                                Commands.waitSeconds(0.6),
+                //                 // Stop drivetrain
+                //                 new InstantCommand(
+                //                                 () -> m_robotDrive.drive(0.0, 0.0, 0.0, true),
+                //                                 m_robotDrive),
 
-                                // Feed into shooter
-                                new InstantCommand(
-                                                () -> m_robotIndexer.startIndexerMotor(),
-                                                m_robotIndexer),
-                                Commands.waitSeconds(5.0),
+                //                 // Spin up launcher
+                //                 new InstantCommand(
+                //                                 () -> m_launcherSubsystem.startLauncher(),
+                //                                 m_launcherSubsystem),
+                //                 Commands.waitSeconds(0.6),
 
-                                // Stop feed and launcher
-                                new InstantCommand(
-                                                () -> m_robotIndexer.stopIndexerMotor(),
-                                                m_robotIndexer),
-                                new InstantCommand(
-                                                () -> m_launcherSubsystem.stopLauncher(),
-                                                m_launcherSubsystem));
+                //                 // Feed into shooter
+                //                 new InstantCommand(
+                //                                 () -> m_robotIndexer.startIndexerMotor(),
+                //                                 m_robotIndexer),
+                //                 Commands.waitSeconds(5.0),
+
+                //                 // Stop feed and launcher
+                //                 new InstantCommand(
+                //                                 () -> m_robotIndexer.stopIndexerMotor(),
+                //                                 m_robotIndexer),
+                //                 new InstantCommand(
+                //                                 () -> m_launcherSubsystem.stopLauncher(),
+                //                                 m_launcherSubsystem));
+
+
         }
 }

@@ -63,10 +63,12 @@ public class SingleTagAim extends Command {
         boolean leftTagAiming = leftTagClosest(data);
         if (leftTagAiming && checkForTag(data.leftTag())){
           aimAtTag(data.leftTag());
-        } else if (checkForTag(data.rightTag())) {
+          m_currentState.setState(State.TargetAcquired); // Set LEDs a color to indicate we have a firing solution - solid yellow
+        } else if (!leftTagAiming && checkForTag(data.rightTag())) {
           aimAtTag(data.rightTag());
+          m_currentState.setState(State.TargetAcquired); // Set LEDs a color to indicate we have a firing solution - solid yellow
         } else {
-          // Set LEDs a color to indicate we don't have a firing solution
+          m_currentState.setState(State.NoTarget); // Set LEDs a color to indicate we don't have a firing solution - solid red
         }
     }
     
