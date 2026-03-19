@@ -27,6 +27,7 @@ import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
+import frc.robot.subsystems.LauncherHoodSubsystem;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -66,6 +67,7 @@ public class RobotContainer {
         private final LimeLightSubsystem m_Limelight;
         private final IndexerSubsystem m_robotIndexer;
         private final LauncherSubsystem m_launcherSubsystem;
+        private final LauncherHoodSubsystem m_launcherHoodSubsystem;
 
                 // Automous options
         private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
@@ -97,6 +99,7 @@ public class RobotContainer {
                 m_robotClimber = new ClimberSubsystem();
                 m_launcherSubsystem = new LauncherSubsystem(m_currentState);
                 m_robotIndexer = new IndexerSubsystem();
+                m_launcherHoodSubsystem = new LauncherHoodSubsystem();
 
                 // Automous options
                 m_leftAuto = new LeftAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
@@ -107,6 +110,12 @@ public class RobotContainer {
                 configureButtonBindings();
 
                 setUpAutoCommands();
+
+                // Hood retracts whenever no aiming command is active
+                m_launcherHoodSubsystem.setDefaultCommand(
+                                new InstantCommand(
+                                                () -> m_launcherHoodSubsystem.startRetracting(),
+                                                m_launcherHoodSubsystem));
 
                 m_Pigeon.setYaw(180);
 
