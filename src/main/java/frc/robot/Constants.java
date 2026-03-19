@@ -135,7 +135,7 @@ public final class Constants {
     public static final double kLauncherMotorSpeed = 0.7;
     public static final double kLauncherReverseMotorSpeed = 1;
 
-    public static final int kHoodControllerCanId = 23;
+    public static final int kHoodControllerCanId = 62;
     public static final int kHoodPort = 0;
 
     public static final double kHoodMinSetpoint = 0.5;

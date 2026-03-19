@@ -33,6 +33,9 @@ public class LauncherHoodSubsystem extends SubsystemBase {
     // Initialize dashboard entries so Elastic can display them as widgets
     SmartDashboard.putBoolean("Hood Manual Mode", false);
     SmartDashboard.putNumber("Hood Manual Setpoint", 0.0);
+    // Open-loop debug controls to help diagnose motor/wiring/sign issues
+    SmartDashboard.putBoolean("Hood Open Loop Enabled", false);
+    SmartDashboard.putNumber("Hood Open Loop Percent", 0.0);
   }
   
   public void startRetracting() {
@@ -96,11 +99,28 @@ public class LauncherHoodSubsystem extends SubsystemBase {
 
     if (manualMode) {
       m_hoodPID.setSetpoint(minSetpoint + (PWMrange * manualSetpoint));
-      m_hoodController.set(-m_hoodPID.calculate(currentPosition));
+      double pidOut = m_hoodPID.calculate(currentPosition);
+      m_hoodController.set(-pidOut);
+      SmartDashboard.putNumber("hoodPID", pidOut);
       SmartDashboard.putNumber("Hood Position", currentPosition);
       SmartDashboard.putNumber("Hood Setpoint", manualSetpoint);
       SmartDashboard.putString("Hood State", "MANUAL");
+      SmartDashboard.putNumber("hood motor controller output", m_hoodController.get());
       return; // skip normal state machine while in manual mode
+    }
+
+    // --- Open-loop diagnostic mode (bypasses PID) ---
+    boolean openLoopEnabled = SmartDashboard.getBoolean("Hood Open Loop Enabled", false);
+    double openLoopPercent = SmartDashboard.getNumber("Hood Open Loop Percent", 0.0);
+    if (openLoopEnabled) {
+      // clamp to [-1,1]
+      double clamped = Math.max(-1.0, Math.min(1.0, openLoopPercent));
+      m_hoodController.set(clamped);
+      SmartDashboard.putNumber("Hood Position", currentPosition);
+      SmartDashboard.putNumber("Hood Setpoint", m_hoodPID.getSetpoint());
+      SmartDashboard.putString("Hood State", "OPEN_LOOP");
+      SmartDashboard.putNumber("hood motor controller output", m_hoodController.get());
+      return;
     }
 
     double output = 0;
@@ -132,8 +152,9 @@ public class LauncherHoodSubsystem extends SubsystemBase {
         break;
         
       }
-    output = -m_hoodPID.calculate(currentPosition);
-    m_hoodController.set(output);
+  double pidOutput = m_hoodPID.calculate(currentPosition);
+  output = -pidOutput;
+  m_hoodController.set(output);
 
     SmartDashboard.putNumber("Hood Position", currentPosition);
     SmartDashboard.putNumber("Hood Setpoint", m_hoodPID.getSetpoint());

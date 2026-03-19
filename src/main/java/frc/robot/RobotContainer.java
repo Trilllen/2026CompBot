@@ -278,9 +278,9 @@ public class RobotContainer {
                 m_gunnerController.y()
                                 .whileTrue(
                                                 new AimTurretLimeLightCommand(m_robotTurret, m_Limelight,
-                                                                m_currentState));
+                                                                m_currentState, m_launcherSubsystem, m_launcherHoodSubsystem));
                 m_gunnerController.a().whileTrue(
-                                new SingleTagAim(m_robotTurret, m_Limelight, m_currentState));
+                                new SingleTagAim(m_robotTurret, m_Limelight, m_currentState, m_launcherSubsystem, m_launcherHoodSubsystem));
 
                 m_gunnerController.povLeft()
                                 .whileTrue(
