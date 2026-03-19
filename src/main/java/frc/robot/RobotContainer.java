@@ -105,11 +105,12 @@ public class RobotContainer {
                 m_leftAuto = new LeftAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
                 m_rightAuto = new RightAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
                 m_centerAuto = new CenterAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
+
+                setUpAutoCommands();
+                
                 configureAutoChooser();
 
                 configureButtonBindings();
-
-                setUpAutoCommands();
 
                 // Hood retracts whenever no aiming command is active
                 m_launcherHoodSubsystem.setDefaultCommand(
