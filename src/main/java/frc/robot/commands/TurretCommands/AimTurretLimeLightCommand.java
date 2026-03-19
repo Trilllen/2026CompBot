@@ -71,7 +71,7 @@ public class AimTurretLimeLightCommand extends Command {
         // Check if both tags are being tracked
         boolean bothTagsSeen = checkForTags(data.leftTag(), data.rightTag());
         if (bothTagsSeen) {
-            m_currentState.setState(State.TargetAquired);
+            m_currentState.setState(State.TargetAcquired);
         
             double targetTx = getInterpolatedTargetTx(data);
             double speed = m_turret.calculateTurretCommandFromTx(targetTx);

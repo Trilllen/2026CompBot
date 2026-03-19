@@ -2,11 +2,10 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-// hello world 
 package frc.robot;
 
-import java.lang.annotation.Target;
-import java.net.PortUnreachableException;
+// import java.lang.annotation.Target;
+// import java.net.PortUnreachableException;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -64,6 +63,8 @@ public final class Constants {
     public static final int kRearRightTurningCanId = 16;
 
     public static final boolean kGyroReversed = false;
+
+    public static final double kMaxSnapSpeed = 0.4;
   }
 
   public static final class ModuleConstants {
@@ -89,8 +90,8 @@ public final class Constants {
     public static final double kDriveDeadband = 0.05;
     public static final double kGunnerDeadBand = 0.05;
 
-    public static final double kLeftTriggerThreshhold = 0.9;
-    public static final double kRightTriggerThreshhold = 0.9;
+    public static final double kLeftTriggerThreshold = 0.9;
+    public static final double kRightTriggerThreshold = 0.9;
   }
 
   public static final class AutoConstants {
@@ -133,13 +134,21 @@ public final class Constants {
 
     public static final double kLauncherMotorSpeed = 0.7;
     public static final double kLauncherReverseMotorSpeed = 1;
+
+    public static final int kHoodControllerCanId = 23;
+    public static final int kHoodPort = 0;
+    public static final double kHoodMinSetpoint = 0;
+    public static final double kHoodMaxSetpoint = 1;
+    public static final double kPHood = 0.4;
+    public static final double kIHood = 0.0;
+    public static final double kHoodD = 0.0;
   }
 
   public static final class ClimberConstants {
     public static final int kClimberMotorCanId = 25;
     public static final double kClimberMotorSpeed = 1;
     public static final double kClimberReverseMotorSpeed = 1;
-    public static final double kClimberEncoderHighPoint = 9999;
+    public static final double kClimberEncoderHighPoint = -40;
     // Digital input channel for the retract (bottom) limit switch
     // Set to the appropriate DIO channel on your RoboRIO
     public static final int kClimberRetractLimitChannel = 9;
@@ -177,7 +186,7 @@ public final class Constants {
     public static final double kPitchEncoderPositionConversionFactor = 1.0 / kPitchGearboxRatio; // (drive24 code used
                                                                                                  // // 360 for the //
                                                                                                  // nominator)
-    public static final double kPitchP = 0.8;
+    public static final double kPitchP = 0.4;
     public static final double kPitchI = 0.0;
     public static final double kPitchD = 0.0;
     // public static final double kPitchFF = 0.0;
@@ -235,7 +244,8 @@ public final class Constants {
       Autonomous,
       TeleopInPosition,
       TeleopNotInPosition,
-      TargetAquired,
+      TargetAcquired,
+      NoTarget,
       Launching,
       Fueling,
       Climbing
