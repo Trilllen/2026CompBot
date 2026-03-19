@@ -1,9 +1,12 @@
+package frc.robot.subsystems;
+
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import frc.robot.Constants.LauncherConstants;
+import frc.robot.Constants.ShootingConstants;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
@@ -27,6 +30,9 @@ public class LauncherHoodSubsystem extends SubsystemBase {
   
   public LauncherHoodSubsystem() {
     m_hoodPID.setSetpoint(minSetpoint);
+    // Initialize dashboard entries so Elastic can display them as widgets
+    SmartDashboard.putBoolean("Hood Manual Mode", false);
+    SmartDashboard.putNumber("Hood Manual Setpoint", 0.0);
   }
   
   public void startRetracting() {
@@ -53,6 +59,15 @@ public class LauncherHoodSubsystem extends SubsystemBase {
     state = States.GOTOSETPOINT;
   }
 
+  /** Looks up the correct hood angle for the given distance and moves to it. */
+  public void setHoodForDistance(double distanceMeters) {
+    double targetAngle = ShootingConstants.interpolate(
+        ShootingConstants.kDistanceMeters,
+        ShootingConstants.kHoodAngles,
+        distanceMeters);
+    goToSetpoint(targetAngle);
+  }
+
   public void stop() {
     state = States.STOPPED;
     m_hoodController.set(0.0);
@@ -73,7 +88,24 @@ public class LauncherHoodSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     double currentPosition = getPosition();
+
+    // --- Testing only: manual hood control from SmartDashboard/Elastic ---
+    // Toggle "Hood Manual Mode" and adjust "Hood Manual Setpoint" [0-1] in Elastic.
+    boolean manualMode = SmartDashboard.getBoolean("Hood Manual Mode", false);
+    double manualSetpoint = SmartDashboard.getNumber("Hood Manual Setpoint", 0.0);
+
+    if (manualMode) {
+      m_hoodPID.setSetpoint(minSetpoint + (PWMrange * manualSetpoint));
+      m_hoodController.set(-m_hoodPID.calculate(currentPosition));
+      SmartDashboard.putNumber("Hood Position", currentPosition);
+      SmartDashboard.putNumber("Hood Setpoint", manualSetpoint);
+      SmartDashboard.putString("Hood State", "MANUAL");
+      return; // skip normal state machine while in manual mode
+    }
+
     double output = 0;
+
+    // State machine for hood control
     switch (state) {
       case STOPPED:
         m_hoodController.set(0.0);
@@ -100,7 +132,7 @@ public class LauncherHoodSubsystem extends SubsystemBase {
         break;
         
       }
-    output = m_hoodPID.calculate(currentPosition);
+    output = -m_hoodPID.calculate(currentPosition);
     m_hoodController.set(output);
 
     SmartDashboard.putNumber("Hood Position", currentPosition);
