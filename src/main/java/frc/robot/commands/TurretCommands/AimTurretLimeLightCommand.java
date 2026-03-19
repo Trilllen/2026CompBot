@@ -6,6 +6,8 @@ import frc.robot.Constants.TurretConstants;
 import frc.robot.Constants.States;
 import frc.robot.Constants.States.State;
 import frc.robot.subsystems.TurretSubsystem;
+import frc.robot.subsystems.LauncherSubsystem;
+import frc.robot.subsystems.LauncherHoodSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem.ZoneData;
 import frc.robot.subsystems.LimeLightSubsystem.HubZone;
@@ -16,15 +18,20 @@ import java.util.ArrayList;
 public class AimTurretLimeLightCommand extends Command {
     private TurretSubsystem m_turret;
     private LimeLightSubsystem m_limelight;
+    private LauncherSubsystem m_launcher;
+    private LauncherHoodSubsystem m_hood;
     public boolean m_isRed;
     public States m_currentState;
 
-    public AimTurretLimeLightCommand(TurretSubsystem turret, LimeLightSubsystem limelight, States state) {
+    public AimTurretLimeLightCommand(TurretSubsystem turret, LimeLightSubsystem limelight, States state,
+            LauncherSubsystem launcher, LauncherHoodSubsystem hood) {
         m_turret = turret;
         m_limelight = limelight;
+        m_launcher = launcher;
+        m_hood = hood;
         m_currentState = state;
         m_isRed = m_limelight.isRedAlliance();
-        addRequirements(m_turret);
+        addRequirements(m_turret, m_hood);
     }
 
     public boolean checkForTags(int tag1, int tag2) {
@@ -71,8 +78,12 @@ public class AimTurretLimeLightCommand extends Command {
         // Check if both tags are being tracked
         boolean bothTagsSeen = checkForTags(data.leftTag(), data.rightTag());
         if (bothTagsSeen) {
-            m_currentState.setState(State.TargetAquired);
-        
+            m_currentState.setState(State.TargetAcquired);
+
+            double distance = m_limelight.getDistanceToHub();
+            m_launcher.setThrottleForDistance(distance);
+            m_hood.setHoodForDistance(distance);
+
             double targetTx = getInterpolatedTargetTx(data);
             double speed = m_turret.calculateTurretCommandFromTx(targetTx);
             m_turret.turnTurret(speed);

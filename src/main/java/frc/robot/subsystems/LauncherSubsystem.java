@@ -13,6 +13,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import frc.robot.Constants.LauncherConstants;
+import frc.robot.Constants.ShootingConstants;
 import frc.robot.Constants.States;
 import frc.robot.Constants.States.State;
 
@@ -58,6 +59,21 @@ public class LauncherSubsystem extends SubsystemBase {
     m_currentState.setState(State.Initial);
     m_krakenMotorMaster.set(0);
     launcherIsOn = false;
+  }
+
+  /** Directly sets the launcher throttle and syncs it to SmartDashboard. */
+  public void setThrottle(double newThrottle) {
+    throttle = newThrottle;
+    SmartDashboard.putNumber("[THROTTLE]", newThrottle);
+  }
+
+  /** Looks up the correct throttle for the given distance and applies it. */
+  public void setThrottleForDistance(double distanceMeters) {
+    double targetThrottle = ShootingConstants.interpolate(
+        ShootingConstants.kDistanceMeters,
+        ShootingConstants.kThrottleValues,
+        distanceMeters);
+    setThrottle(targetThrottle);
   }
 
   public void reverseLauncher() {

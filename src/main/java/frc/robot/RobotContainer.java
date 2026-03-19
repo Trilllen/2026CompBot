@@ -24,6 +24,7 @@ import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
+import frc.robot.subsystems.LauncherHoodSubsystem;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -64,7 +65,14 @@ public class RobotContainer {
         private final LEDSubsystem m_LedSubsystem;
         private final IndexerSubsystem m_robotIndexer;
         private final LauncherSubsystem m_launcherSubsystem;
-        private final UpperIndexerSubsystem m_UpperIndexerSubsystem;
+        private final LauncherHoodSubsystem m_launcherHoodSubsystem;
+
+                // Automous options
+        private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
+        private final Command m_leftAuto;
+        private final Command m_rightAuto;
+        private final Command m_centerAuto;
+        private final Command m_noneAuto = null; // Option for no autonomous routine
 
         // The driver's controller
         private final CommandXboxController m_driverController = new CommandXboxController(
@@ -89,9 +97,25 @@ public class RobotContainer {
                 m_robotClimber = new ClimberSubsystem();
                 m_launcherSubsystem = new LauncherSubsystem(m_currentState);
                 m_robotIndexer = new IndexerSubsystem();
-                m_UpperIndexerSubsystem = new UpperIndexerSubsystem();
-                m_LedSubsystem = new LEDSubsystem(m_currentState);
+                m_launcherHoodSubsystem = new LauncherHoodSubsystem();
+
+                // Automous options
+                m_leftAuto = new LeftAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
+                m_rightAuto = new RightAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
+                m_centerAuto = new CenterAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
+                configureAutoChooser();
+
                 configureButtonBindings();
+
+                setUpAutoCommands();
+
+                // Hood retracts whenever no aiming command is active
+                m_launcherHoodSubsystem.setDefaultCommand(
+                                new InstantCommand(
+                                                () -> m_launcherHoodSubsystem.startRetracting(),
+                                                m_launcherHoodSubsystem));
+
+                m_Pigeon.setYaw(180);
 
                 // Configure default commands
                 if (m_robotDrive != null) {
@@ -239,14 +263,19 @@ public class RobotContainer {
                 m_gunnerController.y()
                                 .whileTrue(
                                                 new AimTurretLimeLightCommand(m_robotTurret, m_Limelight,
-                                                                m_currentState));
-                // D-Pad Left -> reverse indexer (while held)
-                m_gunnerController.povLeft()
-                                .whileTrue(
-                                                new StartEndCommand(
-                                                                () -> m_robotIndexer.reverseIndexer(),
-                                                                () -> m_robotIndexer.stopIndexerMotor(),
-                                                                m_robotIndexer));
+                                                                m_currentState, m_launcherSubsystem,
+                                                                m_launcherHoodSubsystem));
+                m_gunnerController.a().whileTrue(
+                                new SingleTagAim(m_robotTurret, m_Limelight, m_currentState,
+                                                m_launcherSubsystem, m_launcherHoodSubsystem));
+
+                // disabled until we get throttle resetting.
+                 // m_gunnerController.povLeft()
+                //                 .whileTrue(
+                //                                 new StartEndCommand(
+                //                                                 () -> m_robotIndexer.reverseIndexer(),
+                //                                                 () -> m_robotIndexer.stopIndexerMotor(),
+                //                                                 m_robotIndexer));
 
                 // D-Pad Right -> reverse launcher (while held)
                 m_gunnerController.pov(dPadConstants.kDPadRight)

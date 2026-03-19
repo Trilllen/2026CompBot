@@ -133,14 +133,17 @@ public class Robot extends TimedRobot {
     }
     // Calls function to get alliance color tags
     AllianceHelpers.setAllianceColor();
-    isInactiveFirst = false;
+    isInactiveFirst = null; // Reset so it gets re-read from FMS once available
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    // Update hub status for our alliance. It will be stored in the Network Tables
-    // and displayed on the dashboard.
+    // FMS game data isn't available until ~3 seconds after auto ends, so keep
+    // retrying until we get a real value.
+    if (isInactiveFirst == null) {
+      isInactiveFirst = AllianceHelpers.isInactiveFirst();
+    }
     AllianceHelpers.updateHubStatus(isInactiveFirst);
   }
 
