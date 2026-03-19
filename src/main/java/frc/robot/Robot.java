@@ -51,8 +51,8 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     // Start camera
     // if (false) {
-    //   CameraServer.startAutomaticCapture(0);
-    //   CameraServer.startAutomaticCapture(1);
+    // CameraServer.startAutomaticCapture(0);
+    // CameraServer.startAutomaticCapture(1);
     // }
   }
 
@@ -93,7 +93,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    // m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     /*
      * String autoSelected = SmartDashboard.getString("Auto Selector",

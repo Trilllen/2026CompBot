@@ -7,31 +7,34 @@ package frc.robot;
 // imports for Rev Robotics MaxSwerve
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.Constants.DriveConstants;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.dPadConstants;
 import frc.robot.commands.TurretCommands.AimTurretLimeLightCommand;
 import frc.robot.commands.TurretCommands.AimTurretManualCommand;
 import frc.robot.commands.SnapToAngle;
+import frc.robot.commands.TurretCommands.SingleTagAim;
+import frc.robot.commands.AutonomousCommands.LeftAutoCommand;
+import frc.robot.commands.AutonomousCommands.RightAutoCommand;
+import frc.robot.commands.AutonomousCommands.CenterAutoCommand;
 import frc.robot.Constants.States;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IndexerSubsystem;
 import frc.robot.subsystems.IntakeArmSubsystem;
-import frc.robot.subsystems.UpperIndexerSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.LauncherHoodSubsystem;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import com.pathplanner.lib.auto.NamedCommands;
 
 // other imports
 import com.ctre.phoenix6.CANBus;
@@ -62,7 +65,6 @@ public class RobotContainer {
         private final TurretSubsystem m_robotTurret;
         private final ClimberSubsystem m_robotClimber;
         private final LimeLightSubsystem m_Limelight;
-        private final LEDSubsystem m_LedSubsystem;
         private final IndexerSubsystem m_robotIndexer;
         private final LauncherSubsystem m_launcherSubsystem;
         private final LauncherHoodSubsystem m_launcherHoodSubsystem;
@@ -143,6 +145,18 @@ public class RobotContainer {
                 }
         }
 
+        // Configure the autonomous command chooser and publish it to the SmartDashboard
+        private void configureAutoChooser() {
+                // Add options to the chooser
+                m_autoChooser.setDefaultOption("Left", m_leftAuto);
+                // m_autoChooser.addOption("Center", m_centerAuto);
+                // m_autoChooser.addOption("Right", m_rightAuto);
+                m_autoChooser.addOption("None", m_noneAuto);
+
+                // Publish the chooser to NetworkTables (SmartDashboard)
+                SmartDashboard.putData("Auto Choices", m_autoChooser);
+        }
+
         /**
          * Use this method to define your button->command mappings using
          * CommandXboxController's built-in Trigger methods.
@@ -219,63 +233,60 @@ public class RobotContainer {
 
                 // D-Pad Up -> extend climber
                 m_gunnerController.povUp().onTrue(
-                        new InstantCommand(
-                                () -> m_robotClimber.startExtending(),
-                                m_robotClimber));
-                
+                                new InstantCommand(
+                                                () -> m_robotClimber.startExtending(),
+                                                m_robotClimber));
+
                 m_gunnerController.povUp().onFalse(
-                        new InstantCommand(
-                                () -> m_robotClimber.stopClimber(),
-                                m_robotClimber));
+                                new InstantCommand(
+                                                () -> m_robotClimber.stopClimber(),
+                                                m_robotClimber));
                 // D-Pad Down -> retract climber
                 m_gunnerController.povDown().onTrue(
-                        new InstantCommand(
-                                () -> m_robotClimber.startRetracting(),
-                                m_robotClimber));
+                                new InstantCommand(
+                                                () -> m_robotClimber.startRetracting(),
+                                                m_robotClimber));
 
                 m_gunnerController.povDown().onFalse(
-                        new InstantCommand(
-                                () -> m_robotClimber.stopClimber(),
-                                m_robotClimber));
+                                new InstantCommand(
+                                                () -> m_robotClimber.stopClimber(),
+                                                m_robotClimber));
 
                 // A button -> toggle intake arm stow/deploy
                 // MANUAL arm
                 m_gunnerController.x().onTrue(
                                 new InstantCommand(
-                                        () -> m_robotIntakeArm.stow(),
-                                        m_robotIntakeArm));
-                
+                                                () -> m_robotIntakeArm.stow(),
+                                                m_robotIntakeArm));
+
                 m_gunnerController.x().onFalse(
-                        new InstantCommand(
-                                () -> m_robotIntakeArm.stopArm(),
-                                m_robotIntakeArm));
-                
+                                new InstantCommand(
+                                                () -> m_robotIntakeArm.stopArm(),
+                                                m_robotIntakeArm));
+
                 m_gunnerController.b().onTrue(
                                 new InstantCommand(
-                                        () -> m_robotIntakeArm.deploy(),
-                                        m_robotIntakeArm));
-                
+                                                () -> m_robotIntakeArm.deploy(),
+                                                m_robotIntakeArm));
+
                 m_gunnerController.b().onFalse(
-                        new InstantCommand(
-                                () -> m_robotIntakeArm.stopArm(),
-                                m_robotIntakeArm));
-                
+                                new InstantCommand(
+                                                () -> m_robotIntakeArm.stopArm(),
+                                                m_robotIntakeArm));
+
                 m_gunnerController.y()
                                 .whileTrue(
                                                 new AimTurretLimeLightCommand(m_robotTurret, m_Limelight,
-                                                                m_currentState, m_launcherSubsystem,
-                                                                m_launcherHoodSubsystem));
+                                                                m_currentState));
                 m_gunnerController.a().whileTrue(
-                                new SingleTagAim(m_robotTurret, m_Limelight, m_currentState,
-                                                m_launcherSubsystem, m_launcherHoodSubsystem));
+                                new SingleTagAim(m_robotTurret, m_Limelight, m_currentState));
 
-                // disabled until we get throttle resetting.
-                 // m_gunnerController.povLeft()
-                //                 .whileTrue(
-                //                                 new StartEndCommand(
-                //                                                 () -> m_robotIndexer.reverseIndexer(),
-                //                                                 () -> m_robotIndexer.stopIndexerMotor(),
-                //                                                 m_robotIndexer));
+                m_gunnerController.povLeft()
+                                .whileTrue(
+                                                new StartEndCommand(
+                                                                () -> m_robotIndexer.reverseIndexer(),
+                                                                () -> m_robotIndexer.stopIndexerMotor(),
+                                                                m_robotIndexer));
 
                 // D-Pad Right -> reverse launcher (while held)
                 m_gunnerController.pov(dPadConstants.kDPadRight)
@@ -311,9 +322,42 @@ public class RobotContainer {
                                                 OIConstants.kGunnerDeadBand)));
         }
 
+        private void setUpAutoCommands() {
+                NamedCommands.registerCommand("lowerIntake",
+                                new InstantCommand(
+                                                () -> m_robotIntakeArm.deploy(),
+                                                m_robotIntakeArm));
+
+                NamedCommands.registerCommand("startIndexer",
+                                new InstantCommand(
+                                                () -> m_robotIndexer.startIndexerMotor(),
+                                                m_robotIndexer));
+
+                NamedCommands.registerCommand("stopIndexer",
+                                new InstantCommand(
+                                                () -> m_robotIndexer.stopIndexerMotor(),
+                                                m_robotIndexer));
+
+                NamedCommands.registerCommand("startLauncher",
+                                new InstantCommand(
+                                                () -> m_launcherSubsystem.startLauncher(),
+                                                m_launcherSubsystem));
+
+                NamedCommands.registerCommand("stopLauncher",
+                                new InstantCommand(
+                                                () -> m_launcherSubsystem.stopLauncher(),
+                                                m_launcherSubsystem));
+
+                NamedCommands.registerCommand("retractClimber",
+                                new InstantCommand(
+                                                () -> m_robotClimber.startRetracting(),
+                                                m_robotClimber));
+                // Set up any autonomous commands or command groups here
+        }
+
         /*
          * Gunner
-         * A -> Extend/Retract Intake (toggle)
+         * A -> Single tag aim (hold)
          * B -> Arm down (hold)
          * X -> Arm manual up (hold)
          * Y -> Lock onto hub (hold) TO DO
@@ -354,6 +398,7 @@ public class RobotContainer {
          * 
          */
 
+
         /**
          * Use this to pass the autonomous command to the main {@link Robot} class.
          *
@@ -361,76 +406,44 @@ public class RobotContainer {
          */
         public Command getAutonomousCommand() {
 
-                // /**
-                // * Use this to pass the autonomous command to the main {@link Robot} class.
-                // *
-                // * @return the command to run in autonomous
-                // */
-                // return autoChooser.getSelected();
+                return m_autoChooser.getSelected();
+                
+                // return Commands.sequence(
+                //                 // Current autonomous
+                //                 new InstantCommand(() -> m_robotIntakeArm.deploy(), m_robotIntakeArm),
+                //                 Commands.waitSeconds(1),
+                //                 new InstantCommand(() -> m_robotClimber.startRetracting(), m_robotClimber),
 
-                /*
-                 * Autonomouse to start launcher, move forward 2 feet, then run upper indexer,
-                 * then run indexer, wait 4 seconds, then stop motors.
-                 */
-                Command m_autonomousCommand;
-                m_autonomousCommand =
-                                // new PathPlannerAuto("Dead Ahead")
-                                // .andThen(() -> m_ElevatorSubsystem.goToElevatorL2(), m_ElevatorSubsystem)
-                                new InstantCommand(() -> m_launcherSubsystem.startLauncher(), m_launcherSubsystem)
-                                                .andThen(Commands.waitSeconds(2))
-                                                // .andthen(m_robotDrive.)
-                                                // .andThen(() -> m_UpperIndexerSubsystem.startUpperIndexerMotor(),
-                                                // m_UpperIndexerSubsystem)
-                                                .andThen(() -> m_robotIndexer.startIndexerMotor(), m_robotIndexer)
-                                                .andThen(Commands.waitSeconds(5))
-                                                .andThen(() -> m_robotIndexer.stopIndexerMotor(), m_robotIndexer)
-                                                // .andThen(() -> m_UpperIndexerSubsystem.stopUpperIndexerMotor(),
-                                                // m_UpperIndexerSubsystem)
-                                                .andThen(() -> m_launcherSubsystem.stopLauncher(), m_launcherSubsystem);
-                return m_autonomousCommand;
+                //                 // Drive backwards for 2 seconds
+                //                 new RunCommand(
+                //                                 () -> m_robotDrive.drive(-0.3, 0.0, 0.0, true),
+                //                                 m_robotDrive).withTimeout(2.0),
 
-                // this is code from 2025. is it needed/useful?
-                // // Create config for trajectory
-                // TrajectoryConfig config = new TrajectoryConfig(
-                // AutoConstants.kMaxSpeedMetersPerSecond,
-                // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-                // // Add kinematics to ensure max speed is actually obeyed
-                // .setKinematics(DriveConstants.kDriveKinematics);
+                //                 // Stop drivetrain
+                //                 new InstantCommand(
+                //                                 () -> m_robotDrive.drive(0.0, 0.0, 0.0, true),
+                //                                 m_robotDrive),
 
-                // // An example trajectory to follow. All units in meters.
-                // Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-                // // Start at the origin facing the +X direction
-                // new Pose2d(0, 0, new Rotation2d(0)),
-                // // Pass through these two interior waypoints, making an 's' curve path
-                // List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-                // // End 3 meters straight ahead of where we started, facing forward
-                // new Pose2d(3, 0, new Rotation2d(0)),
-                // config);
+                //                 // Spin up launcher
+                //                 new InstantCommand(
+                //                                 () -> m_launcherSubsystem.startLauncher(),
+                //                                 m_launcherSubsystem),
+                //                 Commands.waitSeconds(0.6),
 
-                // var thetaController = new ProfiledPIDController(
-                // AutoConstants.kPThetaController, 0, 0,
-                // AutoConstants.kThetaControllerConstraints);
-                // thetaController.enableContinuousInput(-Math.PI, Math.PI);
+                //                 // Feed into shooter
+                //                 new InstantCommand(
+                //                                 () -> m_robotIndexer.startIndexerMotor(),
+                //                                 m_robotIndexer),
+                //                 Commands.waitSeconds(5.0),
 
-                // SwerveControllerCommand swerveControllerCommand = new
-                // SwerveControllerCommand(
-                // exampleTrajectory,
-                // m_robotDrive::getPose, // Functional interface to feed supplier
-                // DriveConstants.kDriveKinematics,
+                //                 // Stop feed and launcher
+                //                 new InstantCommand(
+                //                                 () -> m_robotIndexer.stopIndexerMotor(),
+                //                                 m_robotIndexer),
+                //                 new InstantCommand(
+                //                                 () -> m_launcherSubsystem.stopLauncher(),
+                //                                 m_launcherSubsystem));
 
-                // // Position controllers
-                // new PIDController(AutoConstants.kPXController, 0, 0),
-                // new PIDController(AutoConstants.kPYController, 0, 0),
-                // thetaController,
-                // m_robotDrive::setModuleStates,
-                // m_robotDrive);
 
-                // // Reset odometry to the starting pose of the trajectory.
-                // m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
-
-                // // Run path following command, then stop at the end.
-                // return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0,
-                // false));
         }
-
 }

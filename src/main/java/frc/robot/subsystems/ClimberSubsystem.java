@@ -43,7 +43,7 @@ public class ClimberSubsystem extends SubsystemBase {
   private void extendClimber() {
     // Code to extend the climber mechanism
     // Allow extension regardless of the retract limit switch state
-    climberMotor.set(extensionSpeed);
+    climberMotor.set(-extensionSpeed);
   }
   
   private void retractClimber() {
@@ -56,7 +56,7 @@ public class ClimberSubsystem extends SubsystemBase {
   }
   
   public void startExtending() {
-      if (climberEncoder.getPosition() < climberMaxHeight){
+      if (climberEncoder.getPosition() > climberMaxHeight){
         state = ClimberStates.EXTENDING;        
       }
   }
@@ -76,7 +76,7 @@ public class ClimberSubsystem extends SubsystemBase {
     
     // Return true when the physical retract switch is pressed. The wiring
     // so compare against the team-configurable constant in Constants.
-    return m_retractLimit.get() == ClimberConstants.kRetractLimitPressedHigh;
+    return !m_retractLimit.get();
   }
 
   @Override
@@ -93,12 +93,17 @@ public class ClimberSubsystem extends SubsystemBase {
     }
     //Extension logic
     if (state == ClimberStates.EXTENDING){
-      if (climberEncoder.getPosition() >= climberMaxHeight) {
+      if (climberEncoder.getPosition() <= climberMaxHeight) {
         stopClimber();
       } else {
         extendClimber();
       }
     }
+    // reset encoder
+    if (isRetracted()) {
+      climberEncoder.setPosition(0);
+    }
+
     SmartDashboard.putBoolean("Climber Limit switch", m_retractLimit.get());
     SmartDashboard.putNumber("[CLIMBER ENCODER]", climberEncoder.getPosition());
     SmartDashboard.putString("[CLIMBER STATE]", state.name());
