@@ -35,7 +35,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import com.pathplanner.lib.auto.NamedCommands;
-
+import com.pathplanner.lib.commands.PathPlannerAuto;
 // other imports
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -290,12 +290,12 @@ public class RobotContainer {
                                                                 m_robotIndexer));
 
                 // D-Pad Right -> reverse launcher (while held)
-                m_gunnerController.pov(dPadConstants.kDPadRight)
-                                .whileTrue(
-                                                new StartEndCommand(
-                                                                () -> m_launcherSubsystem.reverseLauncher(),
-                                                                () -> m_launcherSubsystem.stopLauncher(),
-                                                                m_launcherSubsystem));
+                // m_gunnerController.pov(dPadConstants.kDPadRight)
+                //                 .whileTrue(
+                //                                 new StartEndCommand(
+                //                                                 () -> m_launcherSubsystem.reverseLauncher(),
+                //                                                 () -> m_launcherSubsystem.stopLauncher(),
+                //                                                 m_launcherSubsystem));
 
                 // Left trigger -> start/stop intake rollers
                 m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
@@ -407,8 +407,9 @@ public class RobotContainer {
          */
         public Command getAutonomousCommand() {
 
-                return m_autoChooser.getSelected();
-                
+                return new PathPlannerAuto("leftAuto");
+
+                //return m_autoChooser.getSelected();
                 // return Commands.sequence(
                 //                 // Current autonomous
                 //                 new InstantCommand(() -> m_robotIntakeArm.deploy(), m_robotIntakeArm),
