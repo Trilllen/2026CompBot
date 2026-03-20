@@ -24,6 +24,7 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IndexerSubsystem;
 import frc.robot.subsystems.IntakeArmSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LauncherHoodSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
@@ -66,6 +67,7 @@ public class RobotContainer {
         private final LimeLightSubsystem m_Limelight;
         private final IndexerSubsystem m_robotIndexer;
         private final LauncherSubsystem m_launcherSubsystem;
+        private final LauncherHoodSubsystem m_hood;
 
                 // Automous options
         private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
@@ -97,6 +99,7 @@ public class RobotContainer {
                 m_robotClimber = new ClimberSubsystem();
                 m_launcherSubsystem = new LauncherSubsystem(m_currentState);
                 m_robotIndexer = new IndexerSubsystem();
+                m_hood = new LauncherHoodSubsystem();
 
                 // Automous options
                 m_leftAuto = new LeftAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
@@ -280,12 +283,12 @@ public class RobotContainer {
                                                                 m_robotIndexer));
 
                 // D-Pad Right -> reverse launcher (while held)
-                m_gunnerController.pov(dPadConstants.kDPadRight)
-                                .whileTrue(
-                                                new StartEndCommand(
-                                                                () -> m_launcherSubsystem.reverseLauncher(),
-                                                                () -> m_launcherSubsystem.stopLauncher(),
-                                                                m_launcherSubsystem));
+                // m_gunnerController.pov(dPadConstants.kDPadRight)
+                //                 .whileTrue(
+                //                                 new StartEndCommand(
+                //                                                 () -> m_launcherSubsystem.reverseLauncher(),
+                //                                                 () -> m_launcherSubsystem.stopLauncher(),
+                //                                                 m_launcherSubsystem));
 
                 // Left trigger -> start/stop intake rollers
                 m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
@@ -304,7 +307,10 @@ public class RobotContainer {
 
                 // Left bumper -> reverse intake rollers (while held)
                 m_gunnerController.leftBumper()
-                                .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(), m_robotIntake));
+                                .whileTrue(new StartEndCommand(
+                                        () -> m_robotIntake.reverseIntakeRollers(),
+                                        () -> m_robotIntake.stopIntakeRollers(),
+                                        m_robotIntake));
 
                 //
                 m_robotTurret.setDefaultCommand(new AimTurretManualCommand(
