@@ -1,0 +1,79 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "shooting_start"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "startLauncher"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "startIndexers"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "stopIndexer"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "stopLauncher"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "startLineup"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "ladderLineup"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "startClimb"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "retractClimber"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
