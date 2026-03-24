@@ -14,9 +14,6 @@ import frc.robot.commands.TurretCommands.AimTurretLimeLightCommand;
 import frc.robot.commands.TurretCommands.AimTurretManualCommand;
 import frc.robot.commands.SnapToAngle;
 import frc.robot.commands.TurretCommands.SingleTagAim;
-import frc.robot.commands.AutonomousCommands.LeftAutoCommand;
-import frc.robot.commands.AutonomousCommands.RightAutoCommand;
-import frc.robot.commands.AutonomousCommands.CenterAutoCommand;
 import frc.robot.Constants.States;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.ClimberSubsystem;
@@ -100,7 +97,7 @@ public class RobotContainer {
 
                 // Hood retracts whenever no aiming command is active
                 m_launcherHoodSubsystem.setDefaultCommand(
-                                new InstantCommand(
+                                new RunCommand(
                                                 () -> m_launcherHoodSubsystem.startRetracting(),
                                                 m_launcherHoodSubsystem));
 
@@ -108,29 +105,28 @@ public class RobotContainer {
                 m_Pigeon.setYaw(0);
 
                 // Configure default commands
-                if (m_robotDrive != null) {
-                        m_robotDrive.setDefaultCommand(
-                                        // The left stick controls translation of the robot.
-                                        // Turning is controlled by the X axis of the right stick
-                                        new RunCommand(
-                                                        () -> {
-                                                                double slow = m_driverController.leftBumper()
-                                                                                .getAsBoolean() ? 0.2 : 1.0;
+                m_robotDrive.setDefaultCommand(
+                                // The left stick controls translation of the robot.
+                                // Turning is controlled by the X axis of the right stick
+                                new RunCommand(
+                                                () -> {
+                                                        double slow = m_driverController.leftBumper()
+                                                                        .getAsBoolean() ? 0.2 : 1.0;
 
-                                                                double xSpeed = -MathUtil.applyDeadband(
-                                                                                m_driverController.getLeftY(),
-                                                                                OIConstants.kDriveDeadband) * slow;
-                                                                double ySpeed = -MathUtil.applyDeadband(
-                                                                                m_driverController.getLeftX(),
-                                                                                OIConstants.kDriveDeadband) * slow;
-                                                                double rot = -MathUtil.applyDeadband(
-                                                                                m_driverController.getRightX(),
-                                                                                OIConstants.kDriveDeadband) * slow;
+                                                        double xSpeed = -MathUtil.applyDeadband(
+                                                                        m_driverController.getLeftY(),
+                                                                        OIConstants.kDriveDeadband) * slow;
+                                                        double ySpeed = -MathUtil.applyDeadband(
+                                                                        m_driverController.getLeftX(),
+                                                                        OIConstants.kDriveDeadband) * slow;
+                                                        double rot = -MathUtil.applyDeadband(
+                                                                        m_driverController.getRightX(),
+                                                                        OIConstants.kDriveDeadband) * slow;
 
-                                                                m_robotDrive.drive(xSpeed, ySpeed, rot, true);
-                                                        },
-                                                        m_robotDrive));
-                }
+                                                        m_robotDrive.drive(xSpeed, ySpeed, rot, true);
+                                                },
+                                                m_robotDrive));
+        
         }
 
         private void setUpDashboard(){
@@ -287,7 +283,7 @@ public class RobotContainer {
                                                                 m_robotIntake));
 
                 m_gunnerController.leftBumper()
-                                .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(),
+                                .whileTrue(new StartEndCommand(() -> m_robotIntake.reverseIntakeRollers(),
                                         () -> m_robotIntake.stopIntakeRollers(),
                                         m_robotIntake));
 
@@ -382,7 +378,7 @@ public class RobotContainer {
          */
         public Command getAutonomousCommand() {
 
-                return m_autoChooser.getSelected();;
+                return m_autoChooser.getSelected();
                 
         }
 }
