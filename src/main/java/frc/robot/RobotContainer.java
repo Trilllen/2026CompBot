@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.auto.AutoBuilder;
 // other imports
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -60,14 +61,10 @@ public class RobotContainer {
         private final LauncherSubsystem m_launcherSubsystem;
         private final LauncherHoodSubsystem m_launcherHoodSubsystem;
 
-                // Automous options
-        private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
-        private final Command m_leftAuto;
-        private final Command m_rightAuto;
-        private final Command m_centerAuto;
-        private final Command m_noneAuto = null; // Option for no autonomous routine
+        //Elastic chooser for autos
+        private SendableChooser<Command> m_autoChooser;
 
-        // The driver's controller
+        // The driver team controllers
         private final CommandXboxController m_driverController = new CommandXboxController(
                         OIConstants.kDriverControllerPort);
         private final CommandXboxController m_gunnerController = new CommandXboxController(
@@ -92,16 +89,14 @@ public class RobotContainer {
                 m_robotIndexer = new IndexerSubsystem();
                 m_launcherHoodSubsystem = new LauncherHoodSubsystem();
 
-                // Automous options
-                m_leftAuto = new LeftAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
-                m_rightAuto = new RightAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
-                m_centerAuto = new CenterAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
-
                 setUpAutoCommands();
-                
-                configureAutoChooser();
+
+                //configure the Auto chooser AFTER we set up the Auto Commands
+                m_autoChooser = AutoBuilder.buildAutoChooser("leftAuto");
 
                 configureButtonBindings();
+
+                setUpDashboard();
 
                 // Hood retracts whenever no aiming command is active
                 m_launcherHoodSubsystem.setDefaultCommand(
@@ -109,6 +104,7 @@ public class RobotContainer {
                                                 () -> m_launcherHoodSubsystem.startRetracting(),
                                                 m_launcherHoodSubsystem));
 
+                //Default offset. double check but 0 shoulc be the fron to the bot facing away from the drive station
                 m_Pigeon.setYaw(0);
 
                 // Configure default commands
@@ -137,22 +133,21 @@ public class RobotContainer {
                 }
         }
 
-        // Configure the autonomous command chooser and publish it to the SmartDashboard
-        private void configureAutoChooser() {
-                // Add options to the chooser
-                m_autoChooser.setDefaultOption("Left", m_leftAuto);
-                // m_autoChooser.addOption("Center", m_centerAuto);
-                // m_autoChooser.addOption("Right", m_rightAuto);
-                m_autoChooser.addOption("None", m_noneAuto);
-
-                // Publish the chooser to NetworkTables (SmartDashboard)
-                SmartDashboard.putData("Auto Choices", m_autoChooser);
-        }
-
         private void setUpDashboard(){
+                //180 flip orientaion button if bot is set up backwards
                 SmartDashboard.putData("Flip Heading 180°",
                     new InstantCommand(() -> m_robotDrive.flipHeading(), m_robotDrive)
                         .ignoringDisable(true));
+
+                // zero the heading
+                SmartDashboard.putData("Zero Heading",
+                        new InstantCommand(() -> m_robotDrive.zeroHeading(),
+                                        m_robotDrive)
+                                       .ignoringDisable(true));
+
+                //set the autochooser
+                SmartDashboard.putData("Auto Chooser", m_autoChooser);
+                                       
         }
         
         /**
@@ -387,7 +382,7 @@ public class RobotContainer {
          */
         public Command getAutonomousCommand() {
 
-                return new PathPlannerAuto("leftAuto");
+                return m_autoChooser.getSelected();;
                 
         }
 }
