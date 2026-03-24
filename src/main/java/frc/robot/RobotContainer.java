@@ -40,15 +40,6 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
-/**
- * This class is where the bulk of the robot should be declared. Since
- * Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in
- * the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of
- * the robot (including
- * subsystems, commands, and trigger mappings) should be declared here.
- */
 public class RobotContainer {
 
         public CANBus m_CanBus = new CANBus();
@@ -158,6 +149,12 @@ public class RobotContainer {
                 SmartDashboard.putData("Auto Choices", m_autoChooser);
         }
 
+        private void setUpDashboard(){
+                SmartDashboard.putData("Flip Heading 180°",
+                    new InstantCommand(() -> m_robotDrive.flipHeading(), m_robotDrive)
+                        .ignoringDisable(true));
+        }
+        
         /**
          * Use this method to define your button->command mappings using
          * CommandXboxController's built-in Trigger methods.
@@ -253,8 +250,6 @@ public class RobotContainer {
                                                 () -> m_robotClimber.stopClimber(),
                                                 m_robotClimber));
 
-                // A button -> toggle intake arm stow/deploy
-                // MANUAL arm
                 m_gunnerController.x().onTrue(
                                 new InstantCommand(
                                                 () -> m_robotIntakeArm.stow(),
@@ -289,30 +284,13 @@ public class RobotContainer {
                                                                 () -> m_robotIndexer.stopIndexerMotor(),
                                                                 m_robotIndexer));
 
-                // D-Pad Right -> reverse launcher (while held)
-                // m_gunnerController.pov(dPadConstants.kDPadRight)
-                //                 .whileTrue(
-                //                                 new StartEndCommand(
-                //                                                 () -> m_launcherSubsystem.reverseLauncher(),
-                //                                                 () -> m_launcherSubsystem.stopLauncher(),
-                //                                                 m_launcherSubsystem));
-
-                // Left trigger -> start/stop intake rollers
                 m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
                                 .whileTrue(
                                                 new StartEndCommand(
                                                                 () -> m_robotIntake.startIntakeRollers(),
                                                                 () -> m_robotIntake.stopIntakeRollers(),
                                                                 m_robotIntake));
-                // changed to toggle, see code above
-                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
-                // .onTrue(new InstantCommand(() -> m_robotIntake.startIntakeRollers(),
-                // m_robotIntake));
-                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
-                // .onFalse(new InstantCommand(() -> m_robotIntake.stopIntakeRollers(),
-                // m_robotIntake));
 
-                // Left bumper -> reverse intake rollers (while held)
                 m_gunnerController.leftBumper()
                                 .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(),
                                         () -> m_robotIntake.stopIntakeRollers(),
@@ -410,44 +388,6 @@ public class RobotContainer {
         public Command getAutonomousCommand() {
 
                 return new PathPlannerAuto("leftAuto");
-
-                //return m_autoChooser.getSelected();
-                // return Commands.sequence(
-                //                 // Current autonomous
-                //                 new InstantCommand(() -> m_robotIntakeArm.deploy(), m_robotIntakeArm),
-                //                 Commands.waitSeconds(1),
-                //                 new InstantCommand(() -> m_robotClimber.startRetracting(), m_robotClimber),
-
-                //                 // Drive backwards for 2 seconds
-                //                 new RunCommand(
-                //                                 () -> m_robotDrive.drive(-0.3, 0.0, 0.0, true),
-                //                                 m_robotDrive).withTimeout(2.0),
-
-                //                 // Stop drivetrain
-                //                 new InstantCommand(
-                //                                 () -> m_robotDrive.drive(0.0, 0.0, 0.0, true),
-                //                                 m_robotDrive),
-
-                //                 // Spin up launcher
-                //                 new InstantCommand(
-                //                                 () -> m_launcherSubsystem.startLauncher(),
-                //                                 m_launcherSubsystem),
-                //                 Commands.waitSeconds(0.6),
-
-                //                 // Feed into shooter
-                //                 new InstantCommand(
-                //                                 () -> m_robotIndexer.startIndexerMotor(),
-                //                                 m_robotIndexer),
-                //                 Commands.waitSeconds(5.0),
-
-                //                 // Stop feed and launcher
-                //                 new InstantCommand(
-                //                                 () -> m_robotIndexer.stopIndexerMotor(),
-                //                                 m_robotIndexer),
-                //                 new InstantCommand(
-                //                                 () -> m_launcherSubsystem.stopLauncher(),
-                //                                 m_launcherSubsystem));
-
-
+                
         }
 }
