@@ -10,7 +10,7 @@ public class RumbleHelper {
     private int rumbleCount;
     private int currentRumbleCount = 0;
 
-    public RumbleHelper(XboxController controller) {
+    public RumbleHelper(CommandXboxController controller) {
         this.controller = controller;
     }
 
