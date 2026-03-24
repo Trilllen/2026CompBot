@@ -9,7 +9,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Constants.dPadConstants;
 import frc.robot.commands.TurretCommands.AimTurretLimeLightCommand;
 import frc.robot.commands.TurretCommands.AimTurretManualCommand;
 import frc.robot.commands.SnapToAngle;
@@ -32,6 +31,9 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -68,6 +70,10 @@ public class RobotContainer {
         private final CommandXboxController m_gunnerController = new CommandXboxController(
                         OIConstants.kGunnerControllerPort);
 
+        private final RumbleHelper m_driverRumble;
+        private final RumbleHelper m_gunnerRumble;
+
+
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
          */
@@ -88,8 +94,8 @@ public class RobotContainer {
                 m_launcherHoodSubsystem = new LauncherHoodSubsystem();
 
                 //set up rumble helpers
-                RumbleHelper driverRumble = new RumbleHelper(m_driverController);
-                RumbleHelper gunnerRumbler = new RumbleHelper(m_gunnerController);
+                m_driverRumble = new RumbleHelper(m_driverController);
+                m_gunnerRumble = new RumbleHelper(m_gunnerController);
 
                 setUpAutoCommands();
 
