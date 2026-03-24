@@ -77,6 +77,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
   // TO DO: make private if not used outside this file
   // Lower arm to deploy position
   public void deploy() {
+
+    System.out.println("DEPLOYING");
     if (!inTolerance()){
       state = IntakeStates.LOWER;
     }
