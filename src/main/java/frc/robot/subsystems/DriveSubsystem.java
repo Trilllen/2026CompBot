@@ -297,6 +297,11 @@ public class DriveSubsystem extends SubsystemBase {
     return getGyroRotation2d().getDegrees();
   }
 
+  public void flipHeading() {
+    double flipped = MathUtil.inputModulus(m_pigeon.getYaw().getValueAsDouble() + 180.0, -180.0, 180.0);
+    m_pigeon.setYaw(flipped);
+  }
+
   /**
    * Returns the current rotation of the gyro.
    */
