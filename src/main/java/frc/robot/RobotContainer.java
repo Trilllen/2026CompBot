@@ -118,7 +118,7 @@ public class RobotContainer {
                                                 () -> m_launcherHoodSubsystem.startRetracting(),
                                                 m_launcherHoodSubsystem));
 
-                m_Pigeon.setYaw(180);
+                m_Pigeon.setYaw(0);
 
                 // Configure default commands
                 if (m_robotDrive != null) {
