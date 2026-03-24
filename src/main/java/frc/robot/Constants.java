@@ -64,7 +64,7 @@ public final class Constants {
 
     public static final boolean kGyroReversed = false;
 
-    public static final double kMaxSnapSpeed = 0.4;
+    public static final double kMaxSnapSpeed = 0.2;
   }
 
   public static final class ModuleConstants {
