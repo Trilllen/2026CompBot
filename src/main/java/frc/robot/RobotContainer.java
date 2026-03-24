@@ -25,6 +25,7 @@ import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.LauncherHoodSubsystem;
+import frc.robot.utils.RumbleHelper;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -86,14 +87,20 @@ public class RobotContainer {
                 m_robotIndexer = new IndexerSubsystem();
                 m_launcherHoodSubsystem = new LauncherHoodSubsystem();
 
+                //set up rumble helpers
+                RumbleHelper driverRumble = new RumbleHelper(m_driverController);
+                RumbleHelper gunnerRumbler = new RumbleHelper(m_gunnerController);
+
                 setUpAutoCommands();
 
                 //configure the Auto chooser AFTER we set up the Auto Commands
                 m_autoChooser = AutoBuilder.buildAutoChooser("leftAuto");
 
                 configureButtonBindings();
-
+                
                 setUpDashboard();
+
+                setUpTriggers();
 
                 // Hood retracts whenever no aiming command is active
                 m_launcherHoodSubsystem.setDefaultCommand(
@@ -144,6 +151,38 @@ public class RobotContainer {
                 //set the autochooser
                 SmartDashboard.putData("Auto Chooser", m_autoChooser);
                                        
+        }
+
+        private void setUpTriggers(){
+                // get the time to inactive
+                NetworkTableEntry timeToInactive = NetworkTableInstance.getDefault()
+                    .getTable("TREAD_Dashboard")
+                    .getEntry("timeToInactive");
+                
+                NetworkTableEntry timeToActive = NetworkTableInstance.getDefault()
+                    .getTable("TREAD_Dashboard")
+                    .getEntry("timeToActive");
+                // Trigger rumble when either transition is within 3 seconds
+                new Trigger(() -> {
+                    double toInactive = timeToInactive.getDouble(0);
+                    double toActive = timeToActive.getDouble(0);
+                    return (toInactive > 0 && toInactive <= 3.0) 
+                        || (toActive > 0 && toActive <= 3.0);
+                })
+                .onTrue(new InstantCommand(() -> {
+                    m_driverRumble.rumbleForDuration(0.3, 0.7, 3, 0.8);
+                    m_gunnerRumble.rumbleForDuration(0.3, 0.7, 3, 0.8);
+                }));
+                
+        }
+
+        public void updateRumble() {
+            if (m_driverRumble != null) {
+                m_driverRumble.update();
+            }
+            if (m_gunnerRumble != null) {
+                m_gunnerRumble.update();
+            }
         }
         
         /**
