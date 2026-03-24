@@ -314,7 +314,9 @@ public class RobotContainer {
 
                 // Left bumper -> reverse intake rollers (while held)
                 m_gunnerController.leftBumper()
-                                .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(), m_robotIntake));
+                                .whileTrue(new RunCommand(() -> m_robotIntake.reverseIntakeRollers(),
+                                        () -> m_robotIntake.stopIntakeRollers(),
+                                        m_robotIntake));
 
                 //
                 m_robotTurret.setDefaultCommand(new AimTurretManualCommand(
