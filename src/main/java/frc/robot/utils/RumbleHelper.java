@@ -1,3 +1,11 @@
+package frc.robot.utils;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+
+
 public class RumbleHelper {
     private enum State { IDLE, RUMBLING, WAITING }
     
