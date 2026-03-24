@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 public class RumbleHelper {
     private enum State { IDLE, RUMBLING, WAITING }
     
-    private final XboxController controller;
+    private final CommandXboxController controller;
     private final Timer timer = new Timer();
     private State state = State.IDLE;
     private double rumbleDuration;
