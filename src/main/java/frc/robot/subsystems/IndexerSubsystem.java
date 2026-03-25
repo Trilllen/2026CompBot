@@ -39,6 +39,7 @@ public class IndexerSubsystem extends SubsystemBase {
   }
 
   public void startIndexerMotor() {
+    System.out.println("676767676767677667676767");
     m_buttonState = false;
     m_indexerOn = true;
     m_indexerMotor.set(IndexerConstants.kIndexerMotorSpeed);

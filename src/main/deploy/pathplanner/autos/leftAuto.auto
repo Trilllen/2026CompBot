@@ -13,6 +13,12 @@
         {
           "type": "named",
           "data": {
+            "name": "lowerIntake"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "startLauncher"
           }
         },
@@ -25,13 +31,13 @@
         {
           "type": "named",
           "data": {
-            "name": "startIndexers"
+            "name": "startIndexer"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.5
+            "waitTime": 5
           }
         },
         {
