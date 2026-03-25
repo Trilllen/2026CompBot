@@ -108,13 +108,13 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     AutoBuilder.configure(
-        this::getPose,                    // Pose2d supplier
-        this::resetPose,                  // Pose2d consumer – called at the start of each auto
-        this::getRobotRelativeSpeeds,     // Robot-relative ChassisSpeeds supplier
+        this::getPose, // Pose2d supplier
+        this::resetPose, // Pose2d consumer – called at the start of each auto
+        this::getRobotRelativeSpeeds, // Robot-relative ChassisSpeeds supplier
         (speeds, feedforwards) -> driveRobotRelative(speeds), // Robot-relative ChassisSpeeds consumer
         new PPHolonomicDriveController(
-            new PIDConstants(5.0, 0.0, 0.0),  // Translation PID – tune as needed
-            new PIDConstants(5.0, 0.0, 0.0)   // Rotation PID    – tune as needed
+            new PIDConstants(5.0, 0.0, 0.0), // Translation PID – tune as needed
+            new PIDConstants(5.0, 0.0, 0.0) // Rotation PID – tune as needed
         ),
         config,
         () -> {
@@ -220,7 +220,8 @@ public class DriveSubsystem extends SubsystemBase {
    * @param xSpeed        Speed of the robot in the x direction (forward).
    * @param ySpeed        Speed of the robot in the y direction (sideways).
    * @param rot           Angular rate of the robot.
-   * @param fieldRelative Whether the provided x and y speeds are relative to the field.
+   * @param fieldRelative Whether the provided x and y speeds are relative to the
+   *                      field.
    */
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
     double xSpeedDelivered = xSpeed * DriveConstants.kMaxSpeedMetersPerSecond;
@@ -295,11 +296,6 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public double getHeading() {
     return getGyroRotation2d().getDegrees();
-  }
-
-  public void flipHeading() {
-    double flipped = MathUtil.inputModulus(m_pigeon.getYaw().getValueAsDouble() + 180.0, -180.0, 180.0);
-    m_pigeon.setYaw(flipped);
   }
 
   /**

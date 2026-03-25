@@ -6,8 +6,6 @@ import frc.robot.Constants.TurretConstants;
 import frc.robot.Constants.States;
 import frc.robot.Constants.States.State;
 import frc.robot.subsystems.TurretSubsystem;
-import frc.robot.subsystems.LauncherSubsystem;
-import frc.robot.subsystems.LauncherHoodSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem.ZoneData;
 import frc.robot.subsystems.LimeLightSubsystem.HubZone;
@@ -18,20 +16,15 @@ import java.util.ArrayList;
 public class SingleTagAim extends Command {
     private TurretSubsystem m_turret;
     private LimeLightSubsystem m_limelight;
-    private LauncherSubsystem m_launcher;
-    private LauncherHoodSubsystem m_hood;
     public boolean m_isRed;
     public States m_currentState;
 
-    public SingleTagAim(TurretSubsystem turret, LimeLightSubsystem limelight, States state,
-            LauncherSubsystem launcher, LauncherHoodSubsystem hood) {
+    public SingleTagAim(TurretSubsystem turret, LimeLightSubsystem limelight, States state) {
         m_turret = turret;
         m_limelight = limelight;
-        m_launcher = launcher;
-        m_hood = hood;
         m_currentState = state;
         m_isRed = m_limelight.isRedAlliance();
-        addRequirements(m_turret, m_hood);
+        addRequirements(m_turret);
     }
 
     public boolean checkForTag(int tagID) {
@@ -69,15 +62,9 @@ public class SingleTagAim extends Command {
         // Check if both tags are being tracked
         boolean leftTagAiming = leftTagClosest(data);
         if (leftTagAiming && checkForTag(data.leftTag())){
-          double distance = m_limelight.getDistanceToHub();
-          m_launcher.setThrottleForDistance(distance);
-          m_hood.setHoodForDistance(distance);
           aimAtTag(data.leftTag());
           m_currentState.setState(State.TargetAcquired); // Set LEDs a color to indicate we have a firing solution - solid yellow
         } else if (!leftTagAiming && checkForTag(data.rightTag())) {
-          double distance = m_limelight.getDistanceToHub();
-          m_launcher.setThrottleForDistance(distance);
-          m_hood.setHoodForDistance(distance);
           aimAtTag(data.rightTag());
           m_currentState.setState(State.TargetAcquired); // Set LEDs a color to indicate we have a firing solution - solid yellow
         } else {
