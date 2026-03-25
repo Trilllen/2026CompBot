@@ -64,7 +64,7 @@ public final class Constants {
 
     public static final boolean kGyroReversed = false;
 
-    public static final double kMaxSnapSpeed = 0.4;
+    public static final double kMaxSnapSpeed = 0.2;
   }
 
   public static final class ModuleConstants {
@@ -137,9 +137,10 @@ public final class Constants {
 
     public static final int kHoodControllerCanId = 62;
     public static final int kHoodPort = 0;
-    public static final double kHoodMinSetpoint = 0;
-    public static final double kHoodMaxSetpoint = 1;
-    public static final double kPHood = 0.1;
+
+    public static final double kHoodMinSetpoint = 0.5;
+    public static final double kHoodMaxSetpoint = 4.9;
+    public static final double kPHood = 0.4;
     public static final double kIHood = 0.0;
     public static final double kDHood = 0.0;
   }
@@ -197,7 +198,7 @@ public final class Constants {
 
   public static final class LedConstants {
     public static final int kPwmPort = 9;
-    public static final int kTotalLeds = 36 + 25;
+    public static final int kTotalLeds = 39 + 25;
   }
 
   public static final class AimingConstants {
@@ -270,6 +271,45 @@ public final class Constants {
       State nextState = values[(m_currentState.ordinal() + 1) % values.length];
       m_currentState = nextState;
       return m_currentState;
+    }
+  }
+
+  public static final class ShootingConstants {
+    // Lookup table mapping distance (meters) to launcher throttle and hood setpoint.
+    // Distances MUST be in ascending order.
+    // Hood setpoint is normalized [0 = fully retracted, 1 = fully extended].
+    // Tune these values on the practice field.
+    public static final double[] kDistanceMeters = { 1.5,  2.0,  2.5,  3.0,  3.5,  4.0  };
+    public static final double[] kThrottleValues  = { 0.50, 0.55, 0.60, 0.65, 0.70, 0.75 };
+    public static final double[] kHoodAngles      = { 0.20, 0.35, 0.50, 0.65, 0.80, 1.00 };
+
+    /**
+     * Finds where 'distance' falls between two entries in the distance table,
+     * then returns a proportionally blended value from the corresponding output table.
+     * If distance is outside the table range, returns the nearest endpoint value.
+     */
+    public static double interpolate(double[] distanceTable, double[] outputTable, double distance) {
+      // Below the minimum — use the closest known value
+      if (distance <= distanceTable[0]) {
+        return outputTable[0];
+      }
+      // Above the maximum — use the closest known value
+      if (distance >= distanceTable[distanceTable.length - 1]) {
+        return outputTable[outputTable.length - 1];
+      }
+      // Find the two table entries that bracket this distance
+      for (int i = 1; i < distanceTable.length; i++) {
+        if (distance <= distanceTable[i]) {
+          double lowerDistance = distanceTable[i - 1];
+          double upperDistance = distanceTable[i];
+          double lowerOutput   = outputTable[i - 1];
+          double upperOutput   = outputTable[i];
+          // How far between the two entries (0 = at lower, 1 = at upper)
+          double fraction = (distance - lowerDistance) / (upperDistance - lowerDistance);
+          return lowerOutput + fraction * (upperOutput - lowerOutput);
+        }
+      }
+      return outputTable[outputTable.length - 1];
     }
   }
 

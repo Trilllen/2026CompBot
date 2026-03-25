@@ -9,14 +9,10 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Constants.dPadConstants;
 import frc.robot.commands.TurretCommands.AimTurretLimeLightCommand;
 import frc.robot.commands.TurretCommands.AimTurretManualCommand;
 import frc.robot.commands.SnapToAngle;
 import frc.robot.commands.TurretCommands.SingleTagAim;
-import frc.robot.commands.AutonomousCommands.LeftAutoCommand;
-import frc.robot.commands.AutonomousCommands.RightAutoCommand;
-import frc.robot.commands.AutonomousCommands.CenterAutoCommand;
 import frc.robot.Constants.States;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.ClimberSubsystem;
@@ -24,31 +20,27 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.IndexerSubsystem;
 import frc.robot.subsystems.IntakeArmSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.LauncherHoodSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
+import frc.robot.subsystems.LauncherHoodSubsystem;
+import frc.robot.utils.RumbleHelper;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import com.pathplanner.lib.auto.NamedCommands;
-
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.auto.AutoBuilder;
 // other imports
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
-/**
- * This class is where the bulk of the robot should be declared. Since
- * Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in
- * the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of
- * the robot (including
- * subsystems, commands, and trigger mappings) should be declared here.
- */
 public class RobotContainer {
 
         public CANBus m_CanBus = new CANBus();
@@ -67,20 +59,20 @@ public class RobotContainer {
         private final LimeLightSubsystem m_Limelight;
         private final IndexerSubsystem m_robotIndexer;
         private final LauncherSubsystem m_launcherSubsystem;
-        private final LauncherHoodSubsystem m_hood;
+        private final LauncherHoodSubsystem m_launcherHoodSubsystem;
 
-                // Automous options
-        private final SendableChooser<Command> m_autoChooser = new SendableChooser<>();
-        private final Command m_leftAuto;
-        private final Command m_rightAuto;
-        private final Command m_centerAuto;
-        private final Command m_noneAuto = null; // Option for no autonomous routine
+        //Elastic chooser for autos
+        private SendableChooser<Command> m_autoChooser;
 
-        // The driver's controller
+        // The driver team controllers
         private final CommandXboxController m_driverController = new CommandXboxController(
                         OIConstants.kDriverControllerPort);
         private final CommandXboxController m_gunnerController = new CommandXboxController(
                         OIConstants.kGunnerControllerPort);
+
+        private final RumbleHelper m_driverRumble;
+        private final RumbleHelper m_gunnerRumble;
+
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -99,58 +91,106 @@ public class RobotContainer {
                 m_robotClimber = new ClimberSubsystem();
                 m_launcherSubsystem = new LauncherSubsystem(m_currentState);
                 m_robotIndexer = new IndexerSubsystem();
-                m_hood = new LauncherHoodSubsystem();
+                m_launcherHoodSubsystem = new LauncherHoodSubsystem();
 
-                // Automous options
-                m_leftAuto = new LeftAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
-                m_rightAuto = new RightAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
-                m_centerAuto = new CenterAutoCommand(m_robotClimber, m_robotDrive, m_robotIndexer, m_robotIntakeArm, m_launcherSubsystem);
-                configureAutoChooser();
-
-                configureButtonBindings();
+                //set up rumble helpers
+                m_driverRumble = new RumbleHelper(m_driverController);
+                m_gunnerRumble = new RumbleHelper(m_gunnerController);
 
                 setUpAutoCommands();
 
-                m_Pigeon.setYaw(180);
+                //configure the Auto chooser AFTER we set up the Auto Commands
+                m_autoChooser = AutoBuilder.buildAutoChooser("leftAuto");
+
+                configureButtonBindings();
+                
+                setUpDashboard();
+
+                setUpTriggers();
+
+                // Hood retracts whenever no aiming command is active
+                m_launcherHoodSubsystem.setDefaultCommand(
+                                new RunCommand(
+                                                () -> m_launcherHoodSubsystem.startRetracting(),
+                                                m_launcherHoodSubsystem));
+
+                //Default offset. double check but 0 shoulc be the fron to the bot facing away from the drive station
+                m_Pigeon.setYaw(0);
 
                 // Configure default commands
-                if (m_robotDrive != null) {
-                        m_robotDrive.setDefaultCommand(
-                                        // The left stick controls translation of the robot.
-                                        // Turning is controlled by the X axis of the right stick
-                                        new RunCommand(
-                                                        () -> {
-                                                                double slow = m_driverController.leftBumper()
-                                                                                .getAsBoolean() ? 0.2 : 1.0;
+                m_robotDrive.setDefaultCommand(
+                                // The left stick controls translation of the robot.
+                                // Turning is controlled by the X axis of the right stick
+                                new RunCommand(
+                                                () -> {
+                                                        double slow = m_driverController.leftBumper()
+                                                                        .getAsBoolean() ? 0.2 : 1.0;
 
-                                                                double xSpeed = -MathUtil.applyDeadband(
-                                                                                m_driverController.getLeftY(),
-                                                                                OIConstants.kDriveDeadband) * slow;
-                                                                double ySpeed = -MathUtil.applyDeadband(
-                                                                                m_driverController.getLeftX(),
-                                                                                OIConstants.kDriveDeadband) * slow;
-                                                                double rot = -MathUtil.applyDeadband(
-                                                                                m_driverController.getRightX(),
-                                                                                OIConstants.kDriveDeadband) * slow;
+                                                        double xSpeed = -MathUtil.applyDeadband(
+                                                                        m_driverController.getLeftY(),
+                                                                        OIConstants.kDriveDeadband) * slow;
+                                                        double ySpeed = -MathUtil.applyDeadband(
+                                                                        m_driverController.getLeftX(),
+                                                                        OIConstants.kDriveDeadband) * slow;
+                                                        double rot = -MathUtil.applyDeadband(
+                                                                        m_driverController.getRightX(),
+                                                                        OIConstants.kDriveDeadband) * slow;
 
-                                                                m_robotDrive.drive(xSpeed, ySpeed, rot, true);
-                                                        },
-                                                        m_robotDrive));
-                }
+                                                        m_robotDrive.drive(xSpeed, ySpeed, rot, true);
+                                                },
+                                                m_robotDrive));
+        
         }
 
-        // Configure the autonomous command chooser and publish it to the SmartDashboard
-        private void configureAutoChooser() {
-                // Add options to the chooser
-                m_autoChooser.setDefaultOption("Left", m_leftAuto);
-                // m_autoChooser.addOption("Center", m_centerAuto);
-                // m_autoChooser.addOption("Right", m_rightAuto);
-                m_autoChooser.addOption("None", m_noneAuto);
+        private void setUpDashboard(){
+                //180 flip orientaion button if bot is set up backwards
+                SmartDashboard.putData("Flip Heading 180°",
+                    new InstantCommand(() -> m_robotDrive.flipHeading(), m_robotDrive)
+                        .ignoringDisable(true));
 
-                // Publish the chooser to NetworkTables (SmartDashboard)
-                SmartDashboard.putData("Auto Choices", m_autoChooser);
+                // zero the heading
+                SmartDashboard.putData("Zero Heading",
+                        new InstantCommand(() -> m_robotDrive.zeroHeading(),
+                                        m_robotDrive)
+                                       .ignoringDisable(true));
+
+                //set the autochooser
+                SmartDashboard.putData("Auto Chooser", m_autoChooser);
+                                       
         }
 
+        private void setUpTriggers(){
+                // get the time to inactive
+                NetworkTableEntry timeToInactive = NetworkTableInstance.getDefault()
+                    .getTable("TREAD_Dashboard")
+                    .getEntry("timeToInactive");
+                
+                NetworkTableEntry timeToActive = NetworkTableInstance.getDefault()
+                    .getTable("TREAD_Dashboard")
+                    .getEntry("timeToActive");
+                // Trigger rumble when either transition is within 3 seconds
+                new Trigger(() -> {
+                    double toInactive = timeToInactive.getDouble(0);
+                    double toActive = timeToActive.getDouble(0);
+                    return (toInactive > 0 && toInactive <= 3.0) 
+                        || (toActive > 0 && toActive <= 3.0);
+                })
+                .onTrue(new InstantCommand(() -> {
+                    m_driverRumble.rumbleForDuration(0.3, 0.7, 3, 0.8);
+                    m_gunnerRumble.rumbleForDuration(0.3, 0.7, 3, 0.8);
+                }));
+                
+        }
+
+        public void updateRumble() {
+            if (m_driverRumble != null) {
+                m_driverRumble.update();
+            }
+            if (m_gunnerRumble != null) {
+                m_gunnerRumble.update();
+            }
+        }
+        
         /**
          * Use this method to define your button->command mappings using
          * CommandXboxController's built-in Trigger methods.
@@ -246,8 +286,6 @@ public class RobotContainer {
                                                 () -> m_robotClimber.stopClimber(),
                                                 m_robotClimber));
 
-                // A button -> toggle intake arm stow/deploy
-                // MANUAL arm
                 m_gunnerController.x().onTrue(
                                 new InstantCommand(
                                                 () -> m_robotIntakeArm.stow(),
@@ -271,9 +309,9 @@ public class RobotContainer {
                 m_gunnerController.y()
                                 .whileTrue(
                                                 new AimTurretLimeLightCommand(m_robotTurret, m_Limelight,
-                                                                m_currentState));
+                                                                m_currentState, m_launcherSubsystem, m_launcherHoodSubsystem));
                 m_gunnerController.a().whileTrue(
-                                new SingleTagAim(m_robotTurret, m_Limelight, m_currentState));
+                                new SingleTagAim(m_robotTurret, m_Limelight, m_currentState, m_launcherSubsystem, m_launcherHoodSubsystem));
 
                 m_gunnerController.povLeft()
                                 .whileTrue(
@@ -282,33 +320,15 @@ public class RobotContainer {
                                                                 () -> m_robotIndexer.stopIndexerMotor(),
                                                                 m_robotIndexer));
 
-                // D-Pad Right -> reverse launcher (while held)
-                // m_gunnerController.pov(dPadConstants.kDPadRight)
-                //                 .whileTrue(
-                //                                 new StartEndCommand(
-                //                                                 () -> m_launcherSubsystem.reverseLauncher(),
-                //                                                 () -> m_launcherSubsystem.stopLauncher(),
-                //                                                 m_launcherSubsystem));
-
-                // Left trigger -> start/stop intake rollers
                 m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
                                 .whileTrue(
                                                 new StartEndCommand(
                                                                 () -> m_robotIntake.startIntakeRollers(),
                                                                 () -> m_robotIntake.stopIntakeRollers(),
                                                                 m_robotIntake));
-                // changed to toggle, see code above
-                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
-                // .onTrue(new InstantCommand(() -> m_robotIntake.startIntakeRollers(),
-                // m_robotIntake));
-                // m_gunnerController.leftTrigger(OIConstants.kLeftTriggerThreshold)
-                // .onFalse(new InstantCommand(() -> m_robotIntake.stopIntakeRollers(),
-                // m_robotIntake));
 
-                // Left bumper -> reverse intake rollers (while held)
                 m_gunnerController.leftBumper()
-                                .whileTrue(new StartEndCommand(
-                                        () -> m_robotIntake.reverseIntakeRollers(),
+                                .whileTrue(new StartEndCommand(() -> m_robotIntake.reverseIntakeRollers(),
                                         () -> m_robotIntake.stopIntakeRollers(),
                                         m_robotIntake));
 
@@ -405,42 +425,5 @@ public class RobotContainer {
 
                 return m_autoChooser.getSelected();
                 
-                // return Commands.sequence(
-                //                 // Current autonomous
-                //                 new InstantCommand(() -> m_robotIntakeArm.deploy(), m_robotIntakeArm),
-                //                 Commands.waitSeconds(1),
-                //                 new InstantCommand(() -> m_robotClimber.startRetracting(), m_robotClimber),
-
-                //                 // Drive backwards for 2 seconds
-                //                 new RunCommand(
-                //                                 () -> m_robotDrive.drive(-0.3, 0.0, 0.0, true),
-                //                                 m_robotDrive).withTimeout(2.0),
-
-                //                 // Stop drivetrain
-                //                 new InstantCommand(
-                //                                 () -> m_robotDrive.drive(0.0, 0.0, 0.0, true),
-                //                                 m_robotDrive),
-
-                //                 // Spin up launcher
-                //                 new InstantCommand(
-                //                                 () -> m_launcherSubsystem.startLauncher(),
-                //                                 m_launcherSubsystem),
-                //                 Commands.waitSeconds(0.6),
-
-                //                 // Feed into shooter
-                //                 new InstantCommand(
-                //                                 () -> m_robotIndexer.startIndexerMotor(),
-                //                                 m_robotIndexer),
-                //                 Commands.waitSeconds(5.0),
-
-                //                 // Stop feed and launcher
-                //                 new InstantCommand(
-                //                                 () -> m_robotIndexer.stopIndexerMotor(),
-                //                                 m_robotIndexer),
-                //                 new InstantCommand(
-                //                                 () -> m_launcherSubsystem.stopLauncher(),
-                //                                 m_launcherSubsystem));
-
-
         }
 }
