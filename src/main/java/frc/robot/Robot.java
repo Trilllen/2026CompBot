@@ -97,9 +97,9 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
       m_autonomousCommand = m_robotContainer.getAutonomousCommand();
   
-      if (!Constants.kTestMode) {
-          AllianceHelpers.setAllianceColor();
-      }
+      // if (!Constants.kTestMode) {
+      //     AllianceHelpers.setAllianceColor();
+      // }
   
       if (m_autonomousCommand != null) {
           m_autonomousCommand.schedule();
@@ -116,18 +116,18 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
         m_autonomousCommand.cancel();
       }
-    AllianceHelpers.setAllianceColor();
-    m_isInactiveFirst = null; // Reset so it gets re-read from FMS once available
+    //AllianceHelpers.setAllianceColor();
+    //m_isInactiveFirst = null; // Reset so it gets re-read from FMS once available
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-      if (m_isInactiveFirst == null) {
-          m_isInactiveFirst = AllianceHelpers.isInactiveFirst();
-      }
-      AllianceHelpers.updateHubStatus(m_isInactiveFirst);
-      m_robotContainer.updateRumble(); // moved here
+      // if (m_isInactiveFirst == null) {
+      //     m_isInactiveFirst = AllianceHelpers.isInactiveFirst();
+      // }
+      // AllianceHelpers.updateHubStatus(m_isInactiveFirst);
+      //m_robotContainer.updateRumble(); // moved here
   }
 
   @Override

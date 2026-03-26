@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.8570327657752654,
-        "y": 4.789977603191044
+        "x": 0.4776710816777041,
+        "y": 4.562555187637968
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.9094453002244108,
-        "y": 4.5455334864023245
+        "x": 0.7272396749714531,
+        "y": 4.547874682150101
       },
       "isLocked": false,
       "linkedName": "betterbot67"
     },
     {
       "anchor": {
-        "x": 0.8570327657752654,
-        "y": 4.64988883666635
+        "x": 1.1455849889624725,
+        "y": 4.562555187637968
       },
       "prevControl": {
-        "x": 0.7939171039345465,
-        "y": 4.891790496913666
+        "x": 0.8958819011812484,
+        "y": 4.550374549209616
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -0.6740368979843645
   },
   "useDefaultConstraints": false
 }
