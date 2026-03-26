@@ -7,7 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "start to fire"
+            "pathName": "shooting_start"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "lowerIntake"
           }
         },
         {
@@ -31,13 +37,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.5
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "stopLauncher"
+            "waitTime": 5
           }
         },
         {
@@ -47,33 +47,27 @@
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "hub lineup"
+            "name": "stopLauncher"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "hub deadreckon "
+            "pathName": "startLineup"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "4"
+            "pathName": "ladderLineup"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "retractClimber"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 10.0
           }
         }
       ]

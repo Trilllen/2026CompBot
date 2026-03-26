@@ -67,69 +67,66 @@ public class AllianceHelpers {
   }
 
   public static void updateHubStatus(Boolean isInactiveFirst) {
-    // TELEOP TRANSITION  10 Seconds  2:30 – 2:20  (both alliances active)
-    // SHIFT 1            25 Seconds  2:20 – 1:45
-    // SHIFT 2            25 Seconds  1:45 – 1:20
-    // SHIFT 3            25 Seconds  1:20 – 0:55
-    // SHIFT 4            25 Seconds  0:55 – 0:30
-    // END GAME           30 Seconds  0:30 – 0:00  (hub inactive)
+    // AUTO AUTO 20 Seconds 0:20 – 0:00
+    // TELEOP TRANSITION SHIFT 10 Seconds 2:20 – 2:10
+    // SHIFT 1 25 Seconds 2:10 – 1:45
+    // SHIFT 2 25 Seconds 1:45 – 1:20
+    // SHIFT 3 25 Seconds 1:20 – 0:55
+    // SHIFT 4 25 Seconds 0:55 – 0:30
+    // END GAME 30 Seconds 0:30 – 0:00
 
+    // Get current match time
     double timeRemaining = DriverStation.getMatchTime();
-    boolean isHubActive;
     double timeToInactive = 0;
     double timeToActive = 0;
 
-    boolean isInTransition = timeRemaining > 130;
-    boolean isInShift1     = timeRemaining > 105 && timeRemaining <= 130;
-    boolean isInShift2     = timeRemaining > 80  && timeRemaining <= 105;
-    boolean isInShift3     = timeRemaining > 55  && timeRemaining <= 80;
-    boolean isInShift4     = timeRemaining > 30  && timeRemaining <= 55;
+    // Hub is initially set to active, since it will be active for the 10 second period after autonomous.
+    boolean isHubActive = true;
+    // Determine the current shift
+    boolean isInShift1 = (timeRemaining > 105 && timeRemaining <= 130);
+    boolean isInShift2 = (timeRemaining > 80 && timeRemaining <= 105);
+    boolean isInShift3 = (timeRemaining > 55 && timeRemaining <= 80);
+    boolean isInShift4 = (timeRemaining > 30 && timeRemaining <= 55);
 
+    // If we already have the alliance shift assignment, we don't need to look again.
+    // This information isn't available until 3 seconds after autonomous ends.
     if (isInactiveFirst == null) {
-      // Alliance assignment not yet known — assume hub active
-      isHubActive = true;
-    } else if (isInactiveFirst) {
-      // This alliance is inactive in shifts 1 & 3, active in shifts 2 & 4
-      if (isInTransition) {
+      isInactiveFirst = isInactiveFirst();
+    }
+
+    if (isInactiveFirst) {
+      if (isInShift2) {
         isHubActive = true;
-        timeToInactive = timeRemaining - 130; // shift 1 starts, hub goes inactive
-      } else if (isInShift1) {
-        isHubActive = false;
-        timeToActive = timeRemaining - 105;   // shift 2 starts, hub goes active
-      } else if (isInShift2) {
-        isHubActive = true;
-        timeToInactive = timeRemaining - 80;  // shift 3 starts, hub goes inactive
-      } else if (isInShift3) {
-        isHubActive = false;
-        timeToActive = timeRemaining - 55;    // shift 4 starts, hub goes active
-      } else if (isInShift4) {
-        isHubActive = true;
-        timeToInactive = timeRemaining - 30;  // end game starts, hub goes inactive
-      } else {
-        isHubActive = false; // end game
+        timeToInactive = timeRemaining - 80;
       }
-    } else {
-      // This alliance is active in shifts 1 & 3, inactive in shifts 2 & 4
-      if (isInTransition || isInShift1) {
+      else if (isInShift4) {
         isHubActive = true;
-        timeToInactive = timeRemaining - 105; // shift 2 starts, hub goes inactive
-      } else if (isInShift2) {
-        isHubActive = false;
-        timeToActive = timeRemaining - 80;    // shift 3 starts, hub goes active
-      } else if (isInShift3) {
+        timeToInactive = timeRemaining - 30;
+      }
+    } else if (!isInactiveFirst) {
+      if (isInShift1) {
         isHubActive = true;
-        timeToInactive = timeRemaining - 55;  // shift 4 starts, hub goes inactive
-      } else if (isInShift4) {
-        isHubActive = false;
-        timeToActive = timeRemaining - 30;    // end game (still inactive)
-      } else {
-        isHubActive = false; // end game
+        timeToInactive = timeRemaining - 105;
+      }
+      else if (isInShift3) {
+        isHubActive = true;
+        timeToInactive = timeRemaining - 55;
       }
     }
 
+    // if (isInactiveFirst && (isInShift2 || isInShift4)) {
+    //   isHubActive = true;
+    // } else if (!isInactiveFirst && (isInShift1 || isInShift3)) {
+    //   isHubActive = true;
+    // } else {
+    //   isHubActive = false;
+    // }
+
+    // Store active status on Network Tables
     NetworkTableInstance.getDefault()
         .getTable("TREAD_Dashboard")
         .getEntry("hubStatus").setBoolean(isHubActive);
+    // Store time-to-active and time-to-inactive on Network Tables
     NetworkTableInstance.getDefault()
         .getTable("TREAD_Dashboard")
         .getEntry("timeToActive").setDouble(timeToActive);

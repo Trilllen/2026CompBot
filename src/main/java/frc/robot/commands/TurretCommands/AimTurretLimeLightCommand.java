@@ -50,7 +50,7 @@ public class AimTurretLimeLightCommand extends Command {
     public double getInterpolatedTargetTx(ZoneData data) {
         RawFiducial leftTagData = m_limelight.getRawFiducialById(data.leftTag());
         RawFiducial rightTagData = m_limelight.getRawFiducialById(data.rightTag());
-    
+
         if (leftTagData == null || rightTagData == null) {
             return 0.0;
         }
@@ -58,14 +58,15 @@ public class AimTurretLimeLightCommand extends Command {
         double leftTx = leftTagData.txnc;
         double rightTx = rightTagData.txnc;
         double t = interpolate(data);
-    
+
         return leftTx + t * (rightTx - leftTx);
     }
-    
-    private void leftTagAiming(ZoneData data){
-    
+
+    private void leftTagAiming(ZoneData data) {
+
     }
-    private void rightTagAiming(ZoneData data){
+
+    private void rightTagAiming(ZoneData data) {
 
     }
 
@@ -87,21 +88,21 @@ public class AimTurretLimeLightCommand extends Command {
             double targetTx = getInterpolatedTargetTx(data);
             double speed = m_turret.calculateTurretCommandFromTx(targetTx);
             m_turret.turnTurret(speed);
-        } else { //logic for single tag locks
+        } else { // logic for single tag locks
             ArrayList<Integer> activeTags = m_limelight.getVisibleAprilTagIDs();
-            //left tag check
-            if (activeTags.contains(data.leftTag())){
-                 leftTagAiming(data);   
-            }else if (activeTags.contains(data.rightTag())){
+            // left tag check
+            if (activeTags.contains(data.leftTag())) {
+                leftTagAiming(data);
+            } else if (activeTags.contains(data.rightTag())) {
                 rightTagAiming(data);
-            }else{
+            } else {
                 m_turret.turnTurret(0);
                 m_currentState.setState(State.Initial);
             } // If we don't see both tags, don't move the turret (or you could choose to use
-          // one tag if you want)
+              // one tag if you want)
         }
     }
-    
+
     @Override
     public boolean isFinished() {
         // Don't finish on our own — let the trigger (holding Y) control lifetime.

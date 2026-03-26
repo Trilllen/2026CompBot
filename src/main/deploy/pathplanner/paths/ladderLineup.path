@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.8536334794956055,
-        "y": 4.59
+        "x": 0.4776710816777041,
+        "y": 4.562555187637968
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.1157743933469075,
-        "y": 4.579728574743214
+        "x": 0.7272396749714531,
+        "y": 4.547874682150101
       },
       "isLocked": false,
-      "linkedName": "hub line s2"
+      "linkedName": "betterbot67"
     },
     {
       "anchor": {
-        "x": 1.0747447064419766,
-        "y": 4.59
+        "x": 1.1455849889624725,
+        "y": 4.562555187637968
       },
       "prevControl": {
-        "x": 0.8253295696281071,
-        "y": 4.607090626908302
+        "x": 0.8958819011812484,
+        "y": 4.550374549209616
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "betterbot69"
     }
   ],
   "rotationTargets": [],
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -0.6740368979843645
   },
   "useDefaultConstraints": false
 }

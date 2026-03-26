@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.3870921985815605,
-        "y": 5.060646178092986
+        "x": 0.7535485651214129,
+        "y": 4.935231788079469
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.0910905723496875,
-        "y": 4.921970395151671
+        "x": 0.5948637092805014,
+        "y": 4.7420502244489064
       },
       "isLocked": false,
-      "linkedName": "left firing pos"
+      "linkedName": "startShoot"
     },
     {
       "anchor": {
-        "x": 0.8536334794956055,
-        "y": 4.652204775092657
+        "x": 0.4776710816777041,
+        "y": 4.562555187637968
       },
       "prevControl": {
-        "x": 1.2600208473388486,
-        "y": 4.792954761159134
+        "x": 0.6140893745361768,
+        "y": 4.772054708815416
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "hub line s1"
+      "linkedName": "betterbot67"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -0.6740368979843645
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -20.136303429093317
+    "rotation": -18.858308946833372
   },
   "useDefaultConstraints": true
 }
