@@ -46,12 +46,16 @@ public class SingleTagAim extends Command {
     return (Math.abs(leftAngle - botAngle) < Math.abs(rightAngle - botAngle));
   }
 
-  private void aimAtTag(int tagID) {
+private void aimAtTag(int tagID) {
     RawFiducial tagData = m_limelight.getRawFiducialById(tagID);
+    if (tagData == null) {
+        m_turret.turnTurret(0);
+        return;
+    }
     double tx = tagData.txnc;
     double turnSpeed = m_turret.calculateTurretCommandFromTx(tx);
-    m_turret.turnTurret(turnSpeed);
-  }
+    m_turret.turnTurret(-turnSpeed); // negate to correct drive direction
+}
 
   @Override
   public void execute() {
