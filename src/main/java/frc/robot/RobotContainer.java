@@ -24,6 +24,7 @@ import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.LauncherHoodSubsystem;
+import frc.robot.commands.TurretCommands.SimpleTagAim;
 //import frc.robot.utils.RumbleHelper;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -40,6 +41,10 @@ import com.pathplanner.lib.auto.AutoBuilder;
 // other imports
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
+
+import frc.robot.utils.LimelightHelpers.RawFiducial;
+import frc.robot.Constants.States.State;
+import java.util.Set;
 
 public class RobotContainer {
 
@@ -60,6 +65,9 @@ public class RobotContainer {
         private final IndexerSubsystem m_robotIndexer;
         private final LauncherSubsystem m_launcherSubsystem;
         private final LauncherHoodSubsystem m_launcherHoodSubsystem;
+
+        //All valid Hub ID's
+        private static final Set<Integer> HUB_TAG_IDS = Set.of(2, 5, 8, 9, 10, 11, 18, 21, 24, 25, 26, 27);
 
         //Elastic chooser for autos
         private SendableChooser<Command> m_autoChooser;
@@ -160,6 +168,11 @@ public class RobotContainer {
         }
 
         private void setUpTriggers(){
+            new Trigger(() -> isAnyHubTagVisible())
+                .onTrue(new InstantCommand(() -> m_currentState.setState(State.TargetAcquired)))
+                .onFalse(new InstantCommand(() -> m_currentState.setState(State.NoTarget)));
+        
+                
                 // // get the time to inactive
                 // NetworkTableEntry timeToInactive = NetworkTableInstance.getDefault()
                 //     .getTable("TREAD_Dashboard")
@@ -189,6 +202,17 @@ public class RobotContainer {
         //     if (m_gunnerRumble != null) {
         //         m_gunnerRumble.update();
         //     }
+        }
+        private boolean isAnyHubTagVisible() {
+            RawFiducial[] fiducials = m_Limelight.getLimelightResults().targets_Fiducials;
+            if (fiducials == null) return false;
+        
+            for (RawFiducial tag : fiducials) {
+                if (HUB_TAG_IDS.contains(tag.id)) {
+                    return true;
+                }
+            }
+            return false;
         }
         
         /**
