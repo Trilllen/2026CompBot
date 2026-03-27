@@ -26,7 +26,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
   // TO DO: replace PID values with constants
   private final PIDController pid = new PIDController(IntakeArmConstants.kPitchP, IntakeArmConstants.kPitchI,
       IntakeArmConstants.kPitchD);
-  private static final double kPositionToleranceRot = 0.3; 
+  private static final double kPositionToleranceRot = 0.3;
 
   // Conversion factor: encoder rotations → degrees
   // TO DO: setup as constants
@@ -45,10 +45,12 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
   private double output;
 
-  private enum IntakeStates{
+  private enum IntakeStates {
     RAISE,
     LOWER,
-    STOP}
+    STOP
+  }
+
   private IntakeStates state = IntakeStates.STOP;
 
   /** Creates a new IntakeArmSubsystem. */
@@ -65,6 +67,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
     // beginning of the match, so we set the target rotation to stow
     // stow();
   }
+
   // TO DO: make private if not used outside this file
   // Raise arm to stow position
   public void stow() {
@@ -79,7 +82,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
   public void deploy() {
 
     System.out.println("DEPLOYING");
-    if (!inTolerance()){
+    if (!inTolerance()) {
       state = IntakeStates.LOWER;
     }
   }
@@ -94,9 +97,10 @@ public class IntakeArmSubsystem extends SubsystemBase {
   }
 
   private boolean inTolerance() {
-    double diff = Math.abs(DEPLOY_ROT-intakeArmEncoder.getPosition());
+    double diff = Math.abs(DEPLOY_ROT - intakeArmEncoder.getPosition());
     return (diff < kPositionToleranceRot || intakeArmEncoder.getPosition() > DEPLOY_ROT);
   }
+
   private void overShootHandling() {
     if (intakeArmEncoder.getPosition() > DEPLOY_ROT) {
       stopArm();
@@ -107,8 +111,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
     return intakeArmEncoder.getPosition() > DEPLOY_ROT;
   }
 
-
- @Override
+  @Override
   public void periodic() {
     // Reset encoder if the limit switch is pressed
     if (isRaised()) {
@@ -128,7 +131,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
       } else {
         if (didWeOvershoot()) {
           overShootHandling();
-        }else{
+        } else {
           output = 0.3;
           intakeArmMotor.set(output);
         }
