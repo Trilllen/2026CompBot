@@ -24,7 +24,7 @@ import frc.robot.subsystems.LauncherSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.LauncherHoodSubsystem;
-import frc.robot.commands.TurretCommands.SimpleTagAim;
+import frc.robot.commands.TurretCommands.SimpleAim;
 //import frc.robot.utils.RumbleHelper;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,8 +42,11 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
+import frc.robot.utils.LimelightHelpers;
 import frc.robot.utils.LimelightHelpers.RawFiducial;
 import frc.robot.Constants.States.State;
+import frc.robot.Constants.VisionConstants;
+
 import java.util.Set;
 
 public class RobotContainer {
@@ -204,7 +207,7 @@ public class RobotContainer {
         //     }
         }
         private boolean isAnyHubTagVisible() {
-            RawFiducial[] fiducials = m_Limelight.getLimelightResults().targets_Fiducials;
+            RawFiducial[] fiducials = LimelightHelpers.getRawFiducials(VisionConstants.kCameraName);
             if (fiducials == null) return false;
         
             for (RawFiducial tag : fiducials) {

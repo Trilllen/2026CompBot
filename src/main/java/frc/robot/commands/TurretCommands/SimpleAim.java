@@ -4,11 +4,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.TurretSubsystem;
 import frc.robot.subsystems.LimeLightSubsystem;
 import frc.robot.subsystems.LauncherSubsystem;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.LauncherHoodSubsystem;
+import frc.robot.utils.LimelightHelpers;
 import frc.robot.utils.LimelightHelpers.RawFiducial;
 import java.util.Set;
 
-public class SimpleTagAim extends Command {
+public class SimpleAim extends Command {
     private final TurretSubsystem m_turret;
     private final LimeLightSubsystem m_limelight;
     private final LauncherSubsystem m_launcher;
@@ -16,7 +18,7 @@ public class SimpleTagAim extends Command {
 
     private static final Set<Integer> HUB_TAG_IDS = Set.of(2, 5, 8, 9, 10, 11, 18, 21, 24, 25, 26, 27);
 
-    public SimpleTagAim(TurretSubsystem turret, LimeLightSubsystem limelight,
+    public SimpleAim(TurretSubsystem turret, LimeLightSubsystem limelight,
             LauncherSubsystem launcher, LauncherHoodSubsystem hood) {
         m_turret = turret;
         m_limelight = limelight;
@@ -30,7 +32,7 @@ public class SimpleTagAim extends Command {
      * Larger ta = closer/more reliable detection.
      */
     private RawFiducial getBestHubTag() {
-        RawFiducial[] fiducials = m_limelight.getLimelightResults().targets_Fiducials;
+        RawFiducial[] fiducials = LimelightHelpers.getRawFiducials(VisionConstants.kCameraName);
         if (fiducials == null) return null;
 
         RawFiducial best = null;
